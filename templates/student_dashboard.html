@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+{% block content %}
+    <h2 class="text-xl font-semibold text-gray-700 text-center mb-6">Welcome, {{ name }} (Student)</h2>
+    <div class="grid grid-cols-1 gap-4">
+        <a href="{{ url_for('mark_attendance') }}"><button class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition duration-200">Mark Attendance</button></a>
+        <a href="{{ url_for('view_student_attendance') }}"><button class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition duration-200">View My Attendance</button></a>
+        <a href="{{ url_for('view_class_schedule') }}"><button class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition duration-200">View Class Schedule</button></a>
+        <a href="{{ url_for('logout') }}"><button class="w-full bg-red-600 text-white p-2 rounded hover:bg-red-700 transition duration-200">Logout</button></a>
+    </div>
+{% endblock %}

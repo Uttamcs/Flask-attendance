@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}My Class Schedule{% endblock %}
+{% block content %}
+    <h2 class="text-4xl font-bold text-center text-gray-100 mb-6">My Class Schedule</h2> <!-- Updated heading styles -->
+
+    <table class="min-w-full border-collapse border border-gray-200 mt-4"> <!-- No change needed -->
+
+        <thead>
+            <tr>
+                <th class="border border-gray-300 px-4 py-2">Class</th> <!-- No change needed -->
+
+                <th class="border border-gray-300 px-4 py-2">Start Time</th> <!-- No change needed -->
+
+                <th class="border border-gray-300 px-4 py-2">End Time</th> <!-- No change needed -->
+
+            </tr>
+        </thead>
+        <tbody>
+        {% for sched in schedule %}
+            <tr>
+                <td class="border border-gray-300 px-4 py-2">{{ sched.class_name }} ({{ sched.class_code }})</td> <!-- No change needed -->
+
+                <td class="border border-gray-300 px-4 py-2">{{ sched.start_time }}</td> <!-- No change needed -->
+
+                <td class="border border-gray-300 px-4 py-2">{{ sched.end_time }}</td> <!-- No change needed -->
+
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('student_dashboard') }}"><button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-4">Back</button></a> <!-- Updated button styles -->
+
+
+{% endblock %}

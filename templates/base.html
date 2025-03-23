@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}{% endblock %} - GLA Smart Attendance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta tag -->
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-r from-blue-100 to-blue-200 font-roboto min-h-screen flex items-center justify-center">
+    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg">
+
+        <img src="{{ url_for('static', filename='college_logo.png') }}" alt="Logo" class="mx-auto w-48 h-32 mb-4">
+        <h1 class="text-2xl font-bold text-gray-800 text-center mb-6">GLA Smart Attendance System</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

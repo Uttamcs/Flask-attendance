@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Mark Attendance{% endblock %}
+{% block content %}
+    <h2 class="text-4xl font-bold text-center text-gray-500 mb-6">Mark Attendance</h2> <!-- Updated heading styles -->
+
+    <p class="mt-2 text-gray-900">Please scan your QR code and verify your face using the camera.</p> 
+
+    <div class="flex flex-col items-center mt-4">
+        <button onclick="alert('Camera integration not implemented in this static template.')" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 mt-4">Start QR Scan & Face Verification</button> 
+
+    <a href="{{ url_for('student_dashboard') }}"><button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2">Back</button></a> 
+    </div>
+
+{% endblock %}

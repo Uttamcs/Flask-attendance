@@ -1,0 +1,8 @@
+flask==2.3.2
+pymongo==4.6.1
+opencv-python
+
+qrcode==7.4.2
+pillow==10.0.0
+pyzbar==0.1.9
+numpy==1.24.3

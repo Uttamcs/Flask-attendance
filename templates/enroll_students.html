@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Enroll Students{% endblock %}
+{% block content %}
+    <h2 class="text-4xl font-bold text-center text-gray-100 mb-6">Enroll Students in Class</h2>
+
+    <form method="POST" action="{{ url_for('enroll_students') }}" class="mt-4">
+        <div class="mb-4">
+            <label for="class_select" class="block text-gray-700">Select Class:</label>
+            <select id="class_select" name="class_select" class="border rounded-lg p-2 w-full" onchange="updateClassCode()">
+                <option value="" selected>-- Select a Class --</option>
+                {% for class in classes %}
+                    <option value="{{ class.code }}">{{ class.name }} ({{ class.code }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <label for="enroll_class_code" class="block text-gray-700">Class Code:</label>
+            <input type="text" id="enroll_class_code" name="enroll_class_code" readonly required class="border rounded-lg p-2 w-full bg-gray-100">
+        </div>
+
+        <div class="mb-4">
+            <label for="enroll_section" class="block text-gray-700">Section:</label>
+            <select id="enroll_section" name="enroll_section" class="border rounded-lg p-2 w-full">
+                <option value="" selected>-- Select a Section --</option>
+                {% for section in sections %}
+                    <option value="{{ section }}">{{ section }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 w-full">Enroll</button>
+    </form>
+    <a href="{{ url_for('admin_dashboard') }}">
+        <button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2 w-full">Back</button>
+    </a>
+
+    <script>
+        function updateClassCode() {
+            const select = document.getElementById('class_select');
+            const classCodeInput = document.getElementById('enroll_class_code');
+            const selectedValue = select.value;
+
+            if (selectedValue) {
+                classCodeInput.value = selectedValue;
+            } else {
+                classCodeInput.value = '';
+            }
+        }
+    </script>
+{% endblock %}

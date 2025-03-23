@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Attendance Reports{% endblock %}
+{% block content %}
+    <h2 class="text-4xl font-bold text-center text-gray-100 mb-6">Attendance Reports</h2> <!-- Updated heading styles -->
+
+    <form method="POST" action="{{ url_for('view_attendance_reports') }}" class="mt-4">
+        <label for="report_type" class="block">Select Report Type:</label>
+        <select id="report_type" name="report_type" required class="border rounded-lg p-2 w-full"> <!-- Updated select styles -->
+
+            <option value="By Student">By Student</option>
+            <option value="By Class">By Class</option>
+        </select><br>
+        <label for="report_id" class="block mt-2">Enter ID/Code (or leave blank for all):</label>
+        <input type="text" id="report_id" name="report_id" class="border rounded-lg p-2 w-full"><br> <!-- Updated input styles -->
+
+    <button type="submit" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 mt-4">Generate Report</button> <!-- Updated button styles -->
+
+    </form>
+    {% if report_data %}
+        <h3 class="text-xl font-semibold mt-4">Report Results</h3>
+        <table class="min-w-full border-collapse border border-gray-200 mt-4">
+            {% if report_type == "By Student" %}
+                <thead>
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2">Student ID</th>
+                        <th class="border border-gray-300 px-4 py-2">Class</th>
+                        <th class="border border-gray-300 px-4 py-2">Date</th>
+                        <th class="border border-gray-300 px-4 py-2">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for record in report_data %}
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">{{ record.student_id }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ record.class_name }} ({{ record.class_code }})</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ record.date }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ record.status }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            {% elif report_type == "By Class" %}
+                <thead>
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2">Class</th>
+                        <th class="border border-gray-300 px-4 py-2">Present</th>
+                        <th class="border border-gray-300 px-4 py-2">Total</th>
+                        <th class="border border-gray-300 px-4 py-2">Attendance Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for class_key, stats in report_data.items() %}
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">{{ class_key }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ stats.present }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ stats.total }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ stats.present / stats.total * 100 | round(2) }}%</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            {% endif %}
+        </table>
+    {% endif %}
+    <a href="{{ url_for('admin_dashboard') }}"><button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-4">Back</button></a> <!-- Updated button styles -->
+
+
+{% endblock %}

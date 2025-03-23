@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+    <h2 class="text-xl font-semibold text-gray-700 text-center mb-6">Welcome, {{ name }} (Admin)</h2>
+    <div class="grid grid-cols-1 gap-4">
+        <a href="{{ url_for('register') }}"><button class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition duration-200">Register User</button></a>
+        <a href="{{ url_for('create_class') }}"><button class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition duration-200">Create Class</button></a>
+        <a href="{{ url_for('schedule_class') }}"><button class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition duration-200">Schedule Class</button></a>
+        <a href="{{ url_for('enroll_students') }}"><button class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition duration-200">Enroll Students</button></a>
+        <a href="{{ url_for('view_attendance_reports') }}"><button class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition duration-200">View Attendance Reports</button></a>
+        <a href="{{ url_for('logout') }}"><button class="w-full bg-red-600 text-white p-2 rounded hover:bg-red-700 transition duration-200">Logout</button></a>
+    </div>
+{% endblock %}
