@@ -1,14 +1,111 @@
 {% extends "base.html" %}
 {% block title %}Mark Attendance{% endblock %}
 {% block content %}
-    <h2 class="text-4xl font-bold text-center text-gray-500 mb-6">Mark Attendance</h2> <!-- Updated heading styles -->
-
-    <p class="mt-2 text-gray-900">Please scan your QR code and verify your face using the camera.</p> 
-
-    <div class="flex flex-col items-center mt-4">
-        <button onclick="alert('Camera integration not implemented in this static template.')" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 mt-4">Start QR Scan & Face Verification</button> 
-
-    <a href="{{ url_for('student_dashboard') }}"><button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2">Back</button></a> 
+    <h2 class="text-4xl font-bold text-center text-gray-500 mb-6">Mark Attendance</h2>
+    <div class="flex justify-around items-center bg-gray-100 p-4 rounded-lg shadow">
+        <p class="mt-2 text-gray-900">Please scan your QR code and verify your face using the camera.</p>
+        <p class="mt-2 text-gray-900">Time remaining: <span id="countdown">30s</span></p>
     </div>
 
+    <div class="flex flex-col items-center mt-4">
+        <video id="video" class="bg-black" width="640" height="480" autoplay></video>
+        <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+        <button id="startBtn" class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2">Start Camera</button>
+        <a href="{{ url_for('student_dashboard') }}"><button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2">Back</button></a>
+    </div>
+
+    <!-- Include Socket.IO client library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        let socket;
+
+        function startCamera() {
+            if (navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        startBtn.disabled = true;
+                        startBtn.classList.add('hidden');
+                        video.srcObject = stream;
+                        console.log("Camera started successfully");
+                        connectSocketIO();
+                        sendFrames();
+                        countDown();
+                    })
+                    .catch(err => {
+                        console.error("Error accessing camera: ", err);
+                        alert("Failed to access camera: " + err.message);
+                    });
+            } else {
+                console.error("Camera not supported by browser!");
+                alert("Your browser does not support camera access.");
+            }
+        }
+
+        function connectSocketIO() {
+            socket = io.connect('http://localhost:5000/video_feed');
+            socket.on('connect', () => {
+                console.log("Socket.IO connected");
+            });
+            socket.on('disconnect', () => {
+                console.log("Socket.IO disconnected");
+            });
+            socket.on('message', (data) => {
+                console.log("Server response: ", data);
+                if (data === "Attendance Marked") {
+                    alert("Attendance marked successfully!");
+                    window.location.href = "{{ url_for('student_dashboard') }}";
+                } else if (data.startsWith("Error:")) {
+                    console.warn("Error from server: ", data);
+                    alert(data);
+                } else {
+                    console.log("Unexpected server message: ", data);
+                }
+            });
+        }
+
+        function sendFrames() {
+            if (!socket || !socket.connected) {
+                console.warn("Socket.IO not connected, skipping frame");
+                setTimeout(sendFrames, 200);
+                return;
+            }
+
+            try {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const frame = canvas.toDataURL('image/jpeg', 0.8);
+                socket.emit('message', frame);
+                console.log("Frame sent to server, size: ", frame.length);
+            } catch (err) {
+                console.error("Error sending frame: ", err);
+            }
+
+            setTimeout(sendFrames, 200);
+        }
+
+        function countDown() {
+            let seconds = 30;
+            const countdownElement = document.getElementById("countdown");
+            const interval = setInterval(() => {
+                countdownElement.innerHTML = seconds + "s";
+                seconds--;
+                if (seconds < 0) {
+                    clearInterval(interval);
+                    countdownElement.innerHTML = "Time's up!";
+                    if (socket && socket.connected) {
+                        socket.disconnect();
+                        console.log("Socket.IO disconnected due to timeout");
+                    }
+                    video.srcObject.getTracks().forEach(track => track.stop());
+                    console.log("Camera stopped due to timeout");
+                    alert("Time's up! Please try again.");
+                }
+            }, 1000);
+        }
+
+        startBtn.addEventListener('click', startCamera);
+    </script>
 {% endblock %}

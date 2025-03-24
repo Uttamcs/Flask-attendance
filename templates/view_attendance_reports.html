@@ -1,66 +1,130 @@
 {% extends "base.html" %}
 {% block title %}Attendance Reports{% endblock %}
 {% block content %}
-    <h2 class="text-4xl font-bold text-center text-gray-100 mb-6">Attendance Reports</h2> <!-- Updated heading styles -->
+    <h2 class="text-4xl font-bold text-center text-gray-800 mb-6">Attendance Reports</h2>
 
-    <form method="POST" action="{{ url_for('view_attendance_reports') }}" class="mt-4">
-        <label for="report_type" class="block">Select Report Type:</label>
-        <select id="report_type" name="report_type" required class="border rounded-lg p-2 w-full"> <!-- Updated select styles -->
-
-            <option value="By Student">By Student</option>
-            <option value="By Class">By Class</option>
-        </select><br>
-        <label for="report_id" class="block mt-2">Enter ID/Code (or leave blank for all):</label>
-        <input type="text" id="report_id" name="report_id" class="border rounded-lg p-2 w-full"><br> <!-- Updated input styles -->
-
-    <button type="submit" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 mt-4">Generate Report</button> <!-- Updated button styles -->
-
+    <!-- Report Selection Form -->
+    <form method="POST" class="mt-4 max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+        <div class="mb-4">
+            <label for="report_type" class="block text-gray-700 font-semibold">Report Type:</label>
+            <select id="report_type" name="report_type" class="border rounded-lg p-2 w-full" onchange="toggleReportId()">
+                <option value="By Student" {% if report_type == "By Student" %}selected{% endif %}>By Student</option>
+                <option value="By Class" {% if report_type == "By Class" %}selected{% endif %}>By Class</option>
+                <option value="By Section" {% if report_type == "By Section" %}selected{% endif %}>By Section</option>
+            </select>
+        </div>
+        <div id="report_id_field" class="mb-4">
+            <label for="report_id" class="block text-gray-700 font-semibold">ID:</label>
+            <!-- Text input for Student ID -->
+            <input type="text" id="report_id" name="report_id" class="border rounded-lg p-2 w-full" 
+                   placeholder="Enter Student ID" {% if report_type != "By Student" %}class="hidden"{% endif %}>
+            <!-- Dropdown for Class or Section -->
+            <select id="report_id_select" name="report_id" class="border rounded-lg p-2 w-full" 
+                    {% if report_type == "By Student" or not report_type %}class="hidden"{% endif %}>
+                <option value="">-- Select --</option>
+                {% if report_type == "By Class" %}
+                    {% for class in classes %}
+                        <option value="{{ class.code }}">{{ class.name }} ({{ class.code }})</option>
+                    {% endfor %}
+                {% elif report_type == "By Section" %}
+                    {% for section in sections %}
+                        <option value="{{ section }}">{{ section }}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+        <button type="submit" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 w-full">Generate Report</button>
     </form>
-    {% if report_data %}
-        <h3 class="text-xl font-semibold mt-4">Report Results</h3>
-        <table class="min-w-full border-collapse border border-gray-200 mt-4">
-            {% if report_type == "By Student" %}
-                <thead>
-                    <tr>
-                        <th class="border border-gray-300 px-4 py-2">Student ID</th>
-                        <th class="border border-gray-300 px-4 py-2">Class</th>
-                        <th class="border border-gray-300 px-4 py-2">Date</th>
-                        <th class="border border-gray-300 px-4 py-2">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for record in report_data %}
-                    <tr>
-                        <td class="border border-gray-300 px-4 py-2">{{ record.student_id }}</td>
-                        <td class="border border-gray-300 px-4 py-2">{{ record.class_name }} ({{ record.class_code }})</td>
-                        <td class="border border-gray-300 px-4 py-2">{{ record.date }}</td>
-                        <td class="border border-gray-300 px-4 py-2">{{ record.status }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            {% elif report_type == "By Class" %}
-                <thead>
-                    <tr>
-                        <th class="border border-gray-300 px-4 py-2">Class</th>
-                        <th class="border border-gray-300 px-4 py-2">Present</th>
-                        <th class="border border-gray-300 px-4 py-2">Total</th>
-                        <th class="border border-gray-300 px-4 py-2">Attendance Rate</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for class_key, stats in report_data.items() %}
-                    <tr>
-                        <td class="border border-gray-300 px-4 py-2">{{ class_key }}</td>
-                        <td class="border border-gray-300 px-4 py-2">{{ stats.present }}</td>
-                        <td class="border border-gray-300 px-4 py-2">{{ stats.total }}</td>
-                        <td class="border border-gray-300 px-4 py-2">{{ stats.present / stats.total * 100 | round(2) }}%</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
+
+    <!-- Report Results -->
+    {% if report_type %}
+        <h3 class="text-2xl font-semibold mt-6 text-gray-800">{{ report_type }} Report</h3>
+        {% if report_data %}
+            {% if report_type == "By Class" %}
+                <!-- Class Summary Table -->
+                <table class="w-full bg-white rounded-lg shadow mt-4">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-700">
+                            <th class="p-2 text-left">Class</th>
+                            <th class="p-2 text-left">Present</th>
+                            <th class="p-2 text-left">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for class, stats in report_data.items() %}
+                            <tr class="border-b">
+                                <td class="p-2">{{ class }}</td>
+                                <td class="p-2">{{ stats.present }}</td>
+                                <td class="p-2">{{ stats.total }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <!-- Student or Section Detailed Table -->
+                <table class="w-full bg-white rounded-lg shadow mt-4">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-700">
+                            <th class="p-2 text-left">Student ID</th>
+                            <th class="p-2 text-left">Class</th>
+                            <th class="p-2 text-left">Date</th>
+                            <th class="p-2 text-left">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in report_data %}
+                            <tr class="border-b">
+                                <td class="p-2">{{ record.student_id }}</td>
+                                <td class="p-2">{{ record.class_name }} ({{ record.class_code }})</td>
+                                <td class="p-2">{{ record.date }}</td>
+                                <td class="p-2">{{ record.status }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             {% endif %}
-        </table>
+        {% else %}
+            <p class="mt-4 text-gray-600">No data available for this report.</p>
+        {% endif %}
     {% endif %}
-    <a href="{{ url_for('admin_dashboard') }}"><button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-4">Back</button></a> <!-- Updated button styles -->
 
+    <!-- Back Button -->
+    <a href="{{ url_for('admin_dashboard') }}" 
+       class="block mt-6 bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 text-center w-full max-w-md mx-auto">
+        Back to Dashboard
+    </a>
 
+    <!-- JavaScript for Dynamic Form -->
+    <script>
+        function toggleReportId() {
+            const reportType = document.getElementById('report_type').value;
+            const reportIdInput = document.getElementById('report_id');
+            const reportIdSelect = document.getElementById('report_id_select');
+
+            if (reportType === 'By Student') {
+                reportIdInput.classList.remove('hidden');
+                reportIdSelect.classList.add('hidden');
+                reportIdInput.placeholder = "Enter Student ID";
+            } else if (reportType === 'By Class') {
+                reportIdInput.classList.add('hidden');
+                reportIdSelect.classList.remove('hidden');
+                reportIdSelect.innerHTML = '<option value="">-- Select Class --</option>' + 
+                    {% for class in classes %}
+                        '<option value="{{ class.code }}">{{ class.name }} ({{ class.code }})</option>' +
+                    {% endfor %}
+                    '';
+            } else if (reportType === 'By Section') {
+                reportIdInput.classList.add('hidden');
+                reportIdSelect.classList.remove('hidden');
+                reportIdSelect.innerHTML = '<option value="">-- Select Section --</option>' + 
+                    {% for section in sections %}
+                        '<option value="{{ section }}">{{ section }}</option>' +
+                    {% endfor %}
+                    '';
+            }
+        }
+
+        // Run on page load to set initial state
+        toggleReportId();
+    </script>
 {% endblock %}

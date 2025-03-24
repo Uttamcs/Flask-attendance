@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Manage Classes{% endblock %}
+{% block content %}
+    <h2 class="text-4xl font-bold text-center text-gray-800 mb-6">Manage Classes</h2>
+    {% if classes %}
+        <table class="w-full bg-white rounded-lg shadow">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="p-2">Name</th>
+                    <th class="p-2">Code</th>
+                    <th class="p-2">Description</th>
+                    <th class="p-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for class in classes %}
+                    <tr>
+                        <td class="p-2">{{ class.name }}</td>
+                        <td class="p-2">{{ class.code }}</td>
+                        <td class="p-2">{{ class.description }}</td>
+                        <td class="p-2">
+                            <form method="POST" class="inline">
+                                <input type="hidden" name="class_code" value="{{ class.code }}">
+                                <input type="hidden" name="action" value="delete">
+                                <button type="submit" class="bg-red-500 text-white rounded-lg p-1 hover:bg-red-600" onclick="return confirm('Are you sure? This will delete all related data.')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No classes available.</p>
+    {% endif %}
+    <a href="{{ url_for('admin_dashboard') }}" class="block mt-4 bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 text-center w-full max-w-md mx-auto">Back</a>
+{% endblock %}
