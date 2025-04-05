@@ -1,57 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <title>Login</title>
-</head>
-<body class="bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-200 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md transform transition-all hover:scale-105 duration-300">
-        <div class="relative mb-6">
-            <img src="/static/college_logo.png" alt="Logo" class="mx-auto w-48 h-32 object-contain animate-fade-in">
-            <div class="absolute inset-0 bg-gradient-to-t from-gray-100/10 to-transparent rounded-t-2xl"></div>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <title>Login - Smart Attendance</title>
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-image: url("https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        height: 100vh;
+      }
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      }
+      .gradient-text {
+        background: linear-gradient(to right, #3b82f6, #6366f1);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .btn-gradient {
+        background: linear-gradient(to right, #3b82f6, #6366f1);
+        transition: all 0.3s ease;
+      }
+      .btn-gradient:hover {
+        background: linear-gradient(to right, #2563eb, #4f46e5);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      .input-field {
+        transition: all 0.3s ease;
+      }
+      .input-field:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <!-- Login Form -->
+      <div class="glass-effect rounded-xl p-8 shadow-2xl">
+        <!-- Logo -->
+        <div class="text-center mb-6">
+          <img
+            src="/static/college_logo.png"
+            alt="Logo"
+            class="mx-auto h-24 object-contain"
+          />
+          <h1 class="text-2xl font-bold mt-4 gradient-text">
+            Smart Attendance
+          </h1>
+          <p class="text-gray-600 text-sm mt-1">
+            Secure & Efficient Attendance Management
+          </p>
         </div>
-        
-        <h2 class="text-2xl font-semibold text-gray-800 text-center mb-8 bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
-            Welcome Back 
+
+        <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">
+          Welcome Back
         </h2>
 
+        {% with messages = get_flashed_messages() %} {% if messages %}
+        <div
+          class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md flex items-center"
+        >
+          <i class="fas fa-exclamation-circle mr-3 text-red-500"></i>
+          <p>{{ messages[0] }}</p>
+        </div>
+        {% endif %} {% endwith %}
+
         <form method="POST" action="/login" class="space-y-6">
-            <div class="relative">
-                <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">User ID</label>
-                <input 
-                    type="text" 
-                    id="user_id" 
-                    name="user_id" 
-                    class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white" 
-                    required 
-                    aria-labelledby="user_id"
-                    placeholder="Enter your User ID"
-                >
-            </div>
-
-            <div class="relative">
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white" 
-                    required 
-                    aria-labelledby="password"
-                    placeholder="Enter your password"
-                >
-            </div>
-
-            <button 
-                type="submit" 
-                class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-3 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-300 font-medium text-lg shadow-md hover:shadow-lg transform hover:-translate-y-1"
+          <div class="relative">
+            <label
+              for="user_id"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >User ID</label
             >
-                Sign In
-            </button>
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <i class="fas fa-user text-gray-400"></i>
+              </div>
+              <input
+                type="text"
+                id="user_id"
+                name="user_id"
+                class="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white input-field"
+                required
+                placeholder="Enter your User ID"
+              />
+            </div>
+          </div>
+
+          <div class="relative">
+            <label
+              for="password"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >Password</label
+            >
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <i class="fas fa-lock text-gray-400"></i>
+              </div>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white input-field"
+                required
+                placeholder="Enter your password"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full btn-gradient text-white p-3 rounded-lg font-medium text-lg shadow-md flex items-center justify-center"
+          >
+            <span>Sign In</span>
+            <i class="fas fa-arrow-right ml-2"></i>
+          </button>
         </form>
+
+        <div class="mt-6 text-center text-gray-600 text-sm">
+          <p>Need help? Contact your administrator</p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="mt-8 text-center text-white text-opacity-90 text-sm">
+        <p>&copy; 2023 Smart Attendance System. All rights reserved.</p>
+      </div>
     </div>
-</body>
+  </body>
 </html>
