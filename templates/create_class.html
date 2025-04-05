@@ -1,25 +1,133 @@
-{% extends "base.html" %}
-{% block title %}Create Class{% endblock %}
-{% block content %}
-    <h2 class="text-4xl font-bold text-center text-gray-100 mb-6">Create New Class</h2> <!-- Updated heading styles -->
+{% extends "base.html" %} {% block title %}Create Class{% endblock %} {% block
+content %}
+<h2 class="text-4xl font-bold text-center text-gray-100 mb-6">
+  Create New Class
+</h2>
 
-    <form method="POST" class="mt-4">
-        <label for="class_name" class="block">Class Name:</label>
-        <input type="text" id="class_name" name="class_name" required class="border rounded-lg p-2 w-full"><br> <!-- Updated input styles -->
+<div class="bg-blue-50 p-4 rounded-lg shadow mb-6">
+  <h3 class="text-lg font-semibold text-blue-800 mb-2">
+    Location Information:
+  </h3>
+  <p class="text-blue-700">
+    We need to capture the classroom location for attendance verification.
+    Please ensure you are in the classroom when creating this class.
+  </p>
+  <div id="location-status" class="mt-2 font-semibold text-yellow-600">
+    Waiting for location...
+  </div>
+</div>
 
-        
-        <label for="class_code" class="block mt-2">Class Code:</label>
-        <input type="text" id="class_code" name="class_code" required class="border rounded-lg p-2 w-full"><br> <!-- Updated input styles -->
+<form method="POST" class="mt-4" id="class-form">
+  <label for="class_name" class="block">Class Name:</label>
+  <input
+    type="text"
+    id="class_name"
+    name="class_name"
+    required
+    class="border rounded-lg p-2 w-full"
+  /><br />
 
-        
-        <label for="class_desc" class="block mt-2">Description (Optional):</label>
-        <textarea id="class_desc" name="class_desc" class="border rounded-lg p-2 w-full"></textarea><br> <!-- Updated textarea styles -->
+  <label for="class_code" class="block mt-2">Class Code:</label>
+  <input
+    type="text"
+    id="class_code"
+    name="class_code"
+    required
+    class="border rounded-lg p-2 w-full"
+  /><br />
 
-        
-    <button type="submit" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 mt-4">Create</button> <!-- Updated button styles -->
+  <label for="class_desc" class="block mt-2">Description (Optional):</label>
+  <textarea
+    id="class_desc"
+    name="class_desc"
+    class="border rounded-lg p-2 w-full"
+  ></textarea
+  ><br />
 
-    </form>
-    <a href="{{ url_for('admin_dashboard') }}"><button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2">Back</button></a> <!-- Updated button styles -->
+  <!-- Hidden fields for GPS coordinates -->
+  <input type="hidden" id="classroom_lat" name="classroom_lat" />
+  <input type="hidden" id="classroom_lon" name="classroom_lon" />
+  <input type="hidden" id="location_accuracy" name="location_accuracy" />
 
+  <button
+    type="submit"
+    id="submit-btn"
+    class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 mt-4"
+    disabled
+  >
+    Create
+  </button>
+</form>
+<a href="{{ url_for('admin_dashboard') }}"
+  ><button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2">
+    Back
+  </button></a
+>
 
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const locationStatus = document.getElementById("location-status");
+    const submitBtn = document.getElementById("submit-btn");
+    const latInput = document.getElementById("classroom_lat");
+    const lonInput = document.getElementById("classroom_lon");
+    const accuracyInput = document.getElementById("location_accuracy");
+
+    // Check if geolocation is available
+    if (!navigator.geolocation) {
+      locationStatus.textContent =
+        "Geolocation is not supported by your browser";
+      locationStatus.className = "mt-2 font-semibold text-red-600";
+      return;
+    }
+
+    // Get current position
+    navigator.geolocation.getCurrentPosition(
+      // Success callback
+      function (position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        const accuracy = position.coords.accuracy;
+
+        // Update hidden form fields
+        latInput.value = latitude;
+        lonInput.value = longitude;
+        accuracyInput.value = accuracy;
+
+        // Update status message
+        locationStatus.textContent = `Location captured successfully! (Accuracy: ${Math.round(
+          accuracy
+        )} meters)`;
+        locationStatus.className = "mt-2 font-semibold text-green-600";
+
+        // Enable submit button
+        submitBtn.disabled = false;
+      },
+      // Error callback
+      function (error) {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            locationStatus.textContent =
+              "Location permission denied. Please enable location services.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            locationStatus.textContent = "Location information is unavailable.";
+            break;
+          case error.TIMEOUT:
+            locationStatus.textContent = "Location request timed out.";
+            break;
+          case error.UNKNOWN_ERROR:
+            locationStatus.textContent = "An unknown error occurred.";
+            break;
+        }
+        locationStatus.className = "mt-2 font-semibold text-red-600";
+      },
+      // Options
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  });
+</script>
 {% endblock %}

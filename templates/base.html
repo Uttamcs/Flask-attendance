@@ -1,25 +1,107 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>{% block title %}{% endblock %} - GLA Smart Attendance</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta tag -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}{% endblock %} - Smart Attendance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts for Roboto -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body class="bg-gradient-to-r from-blue-100 to-blue-200 font-roboto min-h-screen flex items-center justify-center">
-    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg">
 
-        <img src="{{ url_for('static', filename='college_logo.png') }}" alt="Logo" class="mx-auto w-48 h-32 mb-4">
-        <h1 class="text-2xl font-bold text-gray-800 text-center mb-6">GLA Smart Attendance System</h1>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">{{ messages[0] }}</div>
-            {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
+    <!-- Google Fonts - Poppins (modern, professional font) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+      }
+      .card-shadow {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+      .gradient-heading {
+        background: linear-gradient(to right, #3b82f6, #6366f1);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .btn-gradient {
+        background: linear-gradient(to right, #3b82f6, #6366f1);
+        transition: all 0.3s ease;
+      }
+      .btn-gradient:hover {
+        background: linear-gradient(to right, #2563eb, #4f46e5);
+        transform: translateY(-2px);
+      }
+    </style>
+
+    {% block head %}{% endblock %}
+  </head>
+
+  <body
+    class="bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 min-h-screen flex items-center justify-center p-4"
+  >
+    <div
+      class="container mx-auto max-w-4xl bg-white rounded-xl shadow-xl overflow-hidden card-shadow"
+    >
+      <div class="p-6 md:p-8">
+        <!-- Header -->
+        <div
+          class="flex flex-col md:flex-row items-center justify-between mb-8 border-b pb-6"
+        >
+          <div class="flex items-center mb-4 md:mb-0">
+            <img
+              src="{{ url_for('static', filename='college_logo.png') }}"
+              alt="Logo"
+              class="w-16 h-16 object-contain mr-4"
+            />
+            <h1 class="text-2xl font-bold gradient-heading">
+              Smart Attendance System
+            </h1>
+          </div>
+          <div class="text-sm text-gray-600">
+            {% block header_right %}{% endblock %}
+          </div>
+        </div>
+
+        <!-- Page Title -->
+        <h2
+          class="text-xl md:text-2xl font-semibold text-gray-800 mb-6 text-center"
+        >
+          {% block page_title %}{% endblock %}
+        </h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %} {% if messages %}
+        <div
+          class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md flex items-center"
+        >
+          <i class="fas fa-exclamation-circle mr-3 text-red-500"></i>
+          <p>{{ messages[0] }}</p>
+        </div>
+        {% endif %} {% endwith %}
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-lg">{% block content %}{% endblock %}</div>
+
+        <!-- Footer -->
+        <div
+          class="mt-8 pt-4 border-t border-gray-200 text-center text-gray-600 text-sm"
+        >
+          <p>&copy; 2023 Smart Attendance System. All rights reserved.</p>
+        </div>
+      </div>
     </div>
-</body>
+
+    {% block scripts %}{% endblock %}
+  </body>
 </html>

@@ -1,19 +1,57 @@
-{% extends "base.html" %}
-{% block title %}Admin Dashboard{% endblock %}
-{% block content %}
-    <h2 class="text-4xl font-bold text-center text-gray-800 mb-6">Welcome, {{ name }}</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white p-4 rounded-lg shadow">Students: {{ total_students }}</div>
-        <div class="bg-white p-4 rounded-lg shadow">Classes: {{ total_classes }}</div>
-        <div class="bg-white p-4 rounded-lg shadow">Schedules: {{ total_schedules }}</div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <a href="{{ url_for('register') }}" class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center">Register User</a>
-        <a href="{{ url_for('create_class') }}" class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center">Create Class</a>
-        <a href="{{ url_for('schedule_class') }}" class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center">Schedule Class</a>
-        <a href="{{ url_for('enroll_students') }}" class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center">Enroll Students</a>
-        <a href="{{ url_for('view_attendance_reports') }}" class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center">View Reports</a>
-        <a href="{{ url_for('manage_classes') }}" class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center">Manage Classes</a>
-    </div>
-    <a href="{{ url_for('logout') }}" class="block mt-4 bg-red-500 text-white rounded-lg p-2 hover:bg-red-600 text-center w-full max-w-md mx-auto">Logout</a>
+{% extends "base.html" %} {% block title %}Admin Dashboard{% endblock %} {%
+block content %}
+<h2 class="text-4xl font-bold text-center text-gray-800 mb-6">
+  Welcome, {{ name }}
+</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <div class="bg-white p-4 rounded-lg shadow">
+    Students: {{ total_students }}
+  </div>
+  <div class="bg-white p-4 rounded-lg shadow">Classes: {{ total_classes }}</div>
+  <div class="bg-white p-4 rounded-lg shadow">
+    Schedules: {{ total_schedules }}
+  </div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <a
+    href="{{ url_for('register') }}"
+    class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center"
+    >Register User</a
+  >
+  <a
+    href="{{ url_for('create_class') }}"
+    class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center"
+    >Create Class</a
+  >
+  <a
+    href="{{ url_for('schedule_class') }}"
+    class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center"
+    >Schedule Class</a
+  >
+  <a
+    href="{{ url_for('enroll_students') }}"
+    class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center"
+    >Enroll Students</a
+  >
+  <a
+    href="{{ url_for('generate_class_qr') }}"
+    class="bg-green-500 text-white rounded-lg p-4 hover:bg-green-600 text-center"
+    >Generate Class QR Code</a
+  >
+  <a
+    href="{{ url_for('view_attendance_reports') }}"
+    class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center"
+    >View Reports</a
+  >
+  <a
+    href="{{ url_for('manage_classes') }}"
+    class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center"
+    >Manage Classes</a
+  >
+</div>
+<a
+  href="{{ url_for('logout') }}"
+  class="block mt-4 bg-red-500 text-white rounded-lg p-2 hover:bg-red-600 text-center w-full max-w-md mx-auto"
+  >Logout</a
+>
 {% endblock %}

@@ -4,22 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <title>Login</title>
 </head>
-<body class="bg-gradient-to-r from-blue-100 to-blue-200 font-roboto min-h-screen flex items-center justify-center">
-    <div class="bg-white p-6 rounded shadow-md w-96">
-        <img src="/static/college_logo.png" alt="Logo" class="mx-auto w-48 h-32 mb-4">
-        <h2 class="text-xl font-semibold text-gray-700 text-center mb-6">Login</h2>
-        <form method="POST" action="/login" class="space-y-4">
-            <div>
-                <label for="user_id" class="block text-sm font-medium text-gray-600">User  ID</label>
-                <input type="text" id="user_id" name="user_id" class="w-full p-2 mt-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required aria-labelledby="user_id">
+<body class="bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-200 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md transform transition-all hover:scale-105 duration-300">
+        <div class="relative mb-6">
+            <img src="/static/college_logo.png" alt="Logo" class="mx-auto w-48 h-32 object-contain animate-fade-in">
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-100/10 to-transparent rounded-t-2xl"></div>
+        </div>
+        
+        <h2 class="text-2xl font-semibold text-gray-800 text-center mb-8 bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+            Welcome Back 
+        </h2>
+
+        <form method="POST" action="/login" class="space-y-6">
+            <div class="relative">
+                <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+                <input 
+                    type="text" 
+                    id="user_id" 
+                    name="user_id" 
+                    class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white" 
+                    required 
+                    aria-labelledby="user_id"
+                    placeholder="Enter your User ID"
+                >
             </div>
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-600">Password</label>
-                <input type="password" id="password" name="password" class="w-full p-2 mt-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required aria-labelledby="password">
+
+            <div class="relative">
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white" 
+                    required 
+                    aria-labelledby="password"
+                    placeholder="Enter your password"
+                >
             </div>
-            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition duration-200">Login</button>
+
+            <button 
+                type="submit" 
+                class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-3 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-300 font-medium text-lg shadow-md hover:shadow-lg transform hover:-translate-y-1"
+            >
+                Sign In
+            </button>
         </form>
     </div>
 </body>
