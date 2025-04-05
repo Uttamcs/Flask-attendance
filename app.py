@@ -123,10 +123,18 @@ def capture_face(user_id):
 def scan_qr(frame):
     try:
         logger.debug("Attempting to scan QR code from frame")
-        decoded = decode(frame)
+        # Convert frame to grayscale for better QR detection
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Try to decode from both the original and grayscale frames
+        decoded = decode(frame) or decode(gray)
+
         if decoded:
-            logger.info(f"QR code detected: {decoded[0].data.decode('utf-8')}")
-            return decoded[0].data.decode("utf-8")
+            # Successfully decoded QR code
+            qr_data = decoded[0].data.decode("utf-8").strip()
+            logger.info(f"QR code detected: {qr_data}")
+            return qr_data
+
         logger.debug("No QR code found in frame")
         return None
     except Exception as e:
@@ -435,7 +443,12 @@ def generate_class_qr():
         db["class_sessions"].insert_one({"_id": session_id, **session_data})
 
         # Generate QR code with the session ID
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,  # Higher error correction
+            box_size=10,
+            border=4
+        )
         qr.add_data(session_id)
         qr.make(fit=True)
         qr_img = qr.make_image(fill='black', back_color='white')
@@ -930,10 +943,39 @@ def handle_video_frame(data):
 
         # Check if this is a class session QR code
         try:
+            # Log the QR data for debugging
+            logger.info(f"Processing QR data: '{qr_data}'")
+
             # Class session QR codes are in the format: class_code_timestamp
             if '_' in qr_data:
                 session_id = qr_data.strip()
+                logger.info(f"Looking up session ID: '{session_id}'")
+
+                # Try to find the session in the database
                 class_session = db["class_sessions"].find_one({"_id": session_id})
+
+                # If not found, try again with common character replacements
+                # (sometimes QR scanners can misinterpret characters)
+                if not class_session:
+                    logger.warning(f"Session ID not found directly: '{session_id}'. Trying alternatives...")
+                    # Try with different underscore characters
+                    alt_session_id = session_id.replace('_', '-')
+                    class_session = db["class_sessions"].find_one({"_id": alt_session_id})
+
+                    if not class_session:
+                        # Try extracting just the class code part
+                        parts = session_id.split('_', 1)
+                        if len(parts) > 0:
+                            class_code = parts[0]
+                            # Find the most recent session for this class
+                            logger.info(f"Trying to find most recent session for class: {class_code}")
+                            class_sessions = list(db["class_sessions"].find(
+                                {"_id": {"$regex": f"^{class_code}_"}}
+                            ).sort("created_at", -1).limit(1))
+
+                            if class_sessions:
+                                class_session = class_sessions[0]
+                                logger.info(f"Found alternative session: {class_session['_id']}")
 
                 if class_session:
                     # Check if the session is still valid
@@ -966,7 +1008,14 @@ def handle_video_frame(data):
 
             # If we get here, it's not a valid class session QR code
             logger.warning(f"Invalid QR code scanned: {qr_data}")
-            emit('message', "Error: Invalid class QR code")
+
+            # Provide more specific error message
+            if '_' not in qr_data:
+                emit('message', "Error: Invalid QR code format. Expected class_code_timestamp format.")
+            elif len(qr_data.split('_')) != 2:
+                emit('message', "Error: QR code has incorrect format. Please scan a valid class QR code.")
+            else:
+                emit('message', "Error: QR code not found in the system. Please scan a valid class QR code.")
 
         except Exception as e:
             logger.error(f"Error processing QR code: {e}")
