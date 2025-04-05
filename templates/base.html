@@ -13,6 +13,7 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="shortcut icon" href="/static/favicon1.png" type="image/x-icon">
 
     <!-- Font Awesome for icons -->
     <link
@@ -150,11 +151,18 @@
                     Mark Attendance
                   </a>
                   <a
-                    href="#"
+                    href="{{ url_for('attendance_history') }}"
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     <i class="fas fa-history mr-2 text-blue-500"></i>
                     Attendance History
+                  </a>
+                  <a
+                    href="{{ url_for('view_class_schedule') }}"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-calendar-alt mr-2 text-purple-500"></i>
+                    Class Schedule
                   </a>
                   {% elif session.get('role') == 'admin' or session.get('role')
                   == 'teacher' %}
@@ -165,22 +173,31 @@
                     <i class="fas fa-tachometer-alt mr-2 text-indigo-500"></i>
                     Dashboard
                   </a>
+                  {% if session.get('role') == 'admin' %}
                   <a
-                    href="#"
+                    href="{{ url_for('enroll_students') }}"
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     <i class="fas fa-users mr-2 text-blue-500"></i>
-                    Manage Students
+                    Enroll Students
                   </a>
                   <a
-                    href="#"
+                    href="{{ url_for('manage_classes') }}"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-book mr-2 text-yellow-500"></i>
+                    Manage Classes
+                  </a>
+                  {% endif %}
+                  <a
+                    href="{{ url_for('generate_class_qr') }}"
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     <i class="fas fa-qrcode mr-2 text-purple-500"></i>
                     Generate QR Code
                   </a>
                   <a
-                    href="#"
+                    href="{{ url_for('view_attendance_reports') }}"
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     <i class="fas fa-chart-bar mr-2 text-green-500"></i>
@@ -189,14 +206,14 @@
                   {% endif %}
                   <div class="border-t border-gray-100 my-1"></div>
                   <a
-                    href="#"
+                    href="{{ url_for('user_profile') }}"
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     <i class="fas fa-user-circle mr-2 text-indigo-500"></i>
                     My Profile
                   </a>
                   <a
-                    href="#"
+                    href="{{ url_for('user_settings') }}"
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     <i class="fas fa-cog mr-2 text-gray-500"></i> Settings

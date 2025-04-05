@@ -15,16 +15,27 @@ import base64
 from io import BytesIO
 from PIL import Image
 
+# Load environment variables if dotenv is available
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 # Flask app setup
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+# Use environment variable for secret key or generate a random one
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'qr_codes'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'face_data'), exist_ok=True)
 
-# SocketIO setup
-socketio = SocketIO(app)
+# Set debug mode from environment variable
+debug_mode = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
+
+# SocketIO setup - use async mode for production
+socketio = SocketIO(app, async_mode='eventlet' if not debug_mode else None)
 
 # Logging setup
 logging.basicConfig(level=logging.DEBUG)
@@ -32,10 +43,14 @@ logger = logging.getLogger(__name__)
 
 # MongoDB setup
 try:
-    client = pymongo.MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=5000)
+    # Get MongoDB URI from environment variable or use default
+    mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/')
+    client = pymongo.MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
     logger.info("MongoDB connection successful.")
     client.server_info()
-    db = client["smart_attendance"]
+    # Get database name from URI or use default
+    db_name = os.environ.get('MONGO_DB_NAME', 'smart_attendance')
+    db = client[db_name]
     users_collection = db["users"]
     attendance_collection = db["attendance"]
     classes_collection = db["classes"]
@@ -684,8 +699,138 @@ def manage_classes():
     classes = list(classes_collection.find({}))
     return render_template('manage_classes.html', classes=classes)
 
+# User Profile and Settings Routes
+@app.route('/profile')
+def user_profile():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    # Get user data from database
+    user = users_collection.find_one({"_id": session['user_id']})
+    if not user:
+        session.clear()
+        return redirect(url_for('login'))
+
+    # Get attendance statistics for students
+    attendance_stats = None
+    if session['role'] == 'student':
+        # Get total classes the student is enrolled in
+        enrollments = list(enrollments_collection.find({"student_id": session['user_id']}))
+        total_classes = len(enrollments)
+
+        # Get attendance records
+        attendance_records = list(attendance_collection.find({"student_id": session['user_id']}))
+        total_sessions = len(attendance_records)
+        present_sessions = sum(1 for record in attendance_records if record.get('status') == 'Present')
+
+        # Calculate attendance percentage
+        attendance_percentage = (present_sessions / total_sessions * 100) if total_sessions > 0 else 0
+
+        attendance_stats = {
+            'total_classes': total_classes,
+            'total_sessions': total_sessions,
+            'present_sessions': present_sessions,
+            'attendance_percentage': round(attendance_percentage, 2)
+        }
+
+    # For teachers/admins, get different stats
+    admin_stats = None
+    if session['role'] in ['admin', 'teacher']:
+        # Get classes created/managed by this admin/teacher
+        classes_managed = list(classes_collection.find({"created_by": session['user_id']}))
+        total_managed = len(classes_managed)
+
+        # Get total students if admin
+        total_students = users_collection.count_documents({"role": "student"}) if session['role'] == 'admin' else None
+
+        admin_stats = {
+            'total_managed': total_managed,
+            'total_students': total_students
+        }
+
+    return render_template('user_profile.html', user=user, attendance_stats=attendance_stats, admin_stats=admin_stats)
+
+@app.route('/settings', methods=['GET', 'POST'])
+def user_settings():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user = users_collection.find_one({"_id": session['user_id']})
+    if not user:
+        session.clear()
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        # Handle password change
+        if 'current_password' in request.form and 'new_password' in request.form:
+            current_password = request.form['current_password']
+            new_password = request.form['new_password']
+
+            # Verify current password
+            if user.get("password") == hash_password(current_password):
+                # Update password
+                users_collection.update_one(
+                    {"_id": session['user_id']},
+                    {"$set": {"password": hash_password(new_password)}}
+                )
+                flash("Password updated successfully!")
+            else:
+                flash("Current password is incorrect!")
+
+        # Handle profile updates
+        if 'name' in request.form:
+            name = request.form['name'].strip()
+            if name:
+                users_collection.update_one(
+                    {"_id": session['user_id']},
+                    {"$set": {"name": name}}
+                )
+                # Update session
+                session['name'] = name
+                flash("Profile updated successfully!")
+
+    return render_template('user_settings.html', user=user)
+
+@app.route('/attendance/history')
+def attendance_history():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    if session['role'] == 'student':
+        # Get student's attendance records
+        records = list(attendance_collection.find({"student_id": session['user_id']}).sort("date", -1))
+
+        # Enhance records with class names
+        for record in records:
+            class_code = record.get('class_code')
+            if class_code:
+                class_data = classes_collection.find_one({"code": class_code})
+                if class_data:
+                    record['class_name'] = class_data.get('name', 'Unknown Class')
+
+        return render_template('attendance_history.html', records=records)
+
+    elif session['role'] in ['admin', 'teacher']:
+        # For admins/teachers, show a different view with filtering options
+        class_filter = request.args.get('class')
+        date_filter = request.args.get('date')
+
+        # Build query
+        query = {}
+        if class_filter:
+            query['class_code'] = class_filter
+        if date_filter:
+            query['date'] = {"$regex": date_filter}
+
+        # Get records
+        records = list(attendance_collection.find(query).sort("date", -1).limit(100))
+
+        # Get classes for filter dropdown
+        classes = list(classes_collection.find({}))
+
+        return render_template('attendance_history.html', records=records, classes=classes)
+
 # SocketIO handlers
-# SocketIO handlers (replace this section in your existing app.py)
 @socketio.on('connect', namespace='/video_feed')
 def handle_connect():
     logger.info("Client connected to video feed")
@@ -1264,6 +1409,7 @@ def mark_attendance(class_session_data, student_id):
         emit('message', "Error: Failed to mark attendance. Please try again.")
 
 if __name__ == "__main__":
+    # Create default admin user if none exists
     if not users_collection.find_one({"role": "admin"}):
         users_collection.insert_one({
             "_id": "admin1",
@@ -1271,4 +1417,11 @@ if __name__ == "__main__":
             "role": "admin",
             "password": hash_password("admin123")
         })
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+        logger.info("Created default admin user (admin1/admin123)")
+
+    # Get host and port from environment variables
+    host = os.environ.get('HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+
+    # Run the app with environment-based configuration
+    socketio.run(app, debug=debug_mode, host=host, port=port)
