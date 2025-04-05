@@ -45,12 +45,33 @@ logger = logging.getLogger(__name__)
 try:
     # Get MongoDB URI from environment variable or use default
     mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/')
-    client = pymongo.MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+
+    # Extract database name from URI if present
+    db_name = os.environ.get('MONGO_DB_NAME', 'smart_attendance')
+
+    # Handle Railway's MongoDB connection string format
+    if '?retryWrites=' in mongo_uri and not db_name in mongo_uri:
+        # Add database name to URI if not already present
+        parts = mongo_uri.split('?')
+        if len(parts) > 1:
+            mongo_uri = f"{parts[0]}/{db_name}?{parts[1]}"
+
+    # Connect to MongoDB
+    client = pymongo.MongoClient(mongo_uri, serverSelectionTimeoutMS=10000)
     logger.info("MongoDB connection successful.")
     client.server_info()
-    # Get database name from URI or use default
-    db_name = os.environ.get('MONGO_DB_NAME', 'smart_attendance')
+
+    # Get database from client
+    if '/' in mongo_uri and not mongo_uri.endswith('/'):
+        # If URI includes database name, use that database
+        uri_parts = mongo_uri.split('/')
+        if '?' in uri_parts[-1]:
+            db_name = uri_parts[-1].split('?')[0]
+        else:
+            db_name = uri_parts[-1]
+
     db = client[db_name]
+    logger.info(f"Using database: {db_name}")
     users_collection = db["users"]
     attendance_collection = db["attendance"]
     classes_collection = db["classes"]
