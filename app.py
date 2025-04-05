@@ -339,9 +339,21 @@ def login():
         password = request.form['password']
         user = users_collection.find_one({"_id": user_id})
         if user and user.get("password") == hash_password(password):
+            # Store user information in session
             session['user_id'] = user['_id']
-            session['role'] = user['role']
+            session['role'] = user['role'].lower()  # Ensure lowercase for template conditionals
             session['name'] = user['name']
+
+            # Add last login time
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M')
+            session['last_login'] = current_time
+
+            # Update last login in database
+            users_collection.update_one(
+                {"_id": user_id},
+                {"$set": {"last_login": current_time}}
+            )
+
             logger.info(f"User {user_id} logged in as {user['role']}")
             if user['role'] == 'admin':
                 return redirect(url_for('admin_dashboard'))

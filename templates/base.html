@@ -68,8 +68,157 @@
               Smart Attendance System
             </h1>
           </div>
-          <div class="text-sm text-gray-600">
-            {% block header_right %}{% endblock %}
+          <div class="flex items-center">
+            <div class="text-sm text-gray-600 mr-4">
+              {% block header_right %}{% endblock %}
+            </div>
+
+            <!-- User Profile Section -->
+            {% if session.get('user_id') %}
+            <div class="relative group">
+              <button
+                class="flex items-center space-x-2 bg-white rounded-full pl-2 pr-4 py-1 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200"
+              >
+                {% if session.get('role') == 'admin' %}
+                <div
+                  class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold"
+                >
+                  {{ session.get('name', 'User')[0] | upper }}
+                </div>
+                {% elif session.get('role') == 'teacher' %}
+                <div
+                  class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold"
+                >
+                  {{ session.get('name', 'User')[0] | upper }}
+                </div>
+                {% else %}
+                <div
+                  class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold"
+                >
+                  {{ session.get('name', 'User')[0] | upper }}
+                </div>
+                {% endif %}
+                <div class="flex flex-col items-start">
+                  <span class="text-sm font-medium text-gray-700"
+                    >{{ session.get('name', 'User') }}</span
+                  >
+                  <span class="text-xs text-gray-500"
+                    >{{ session.get('role', 'Student') }}</span
+                  >
+                </div>
+                <i class="fas fa-chevron-down text-xs text-gray-400 ml-1"></i>
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div
+                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden group-hover:block"
+              >
+                <div class="py-2">
+                  <div class="px-4 py-3 border-b border-gray-100 bg-indigo-50">
+                    <p class="text-sm font-medium text-gray-700">
+                      {{ session.get('name', 'User') }}
+                    </p>
+                    <p class="text-xs text-gray-500 truncate">
+                      ID: {{ session.get('user_id', '') }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                      <span
+                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800"
+                      >
+                        {{ session.get('role', 'Student') }}
+                      </span>
+                      {% if session.get('last_login') %}
+                      <span class="text-xs text-gray-400 ml-2"
+                        >Last login: {{ session.get('last_login') }}</span
+                      >
+                      {% endif %}
+                    </p>
+                  </div>
+                  {% if session.get('role') == 'student' %}
+                  <a
+                    href="{{ url_for('student_dashboard') }}"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-tachometer-alt mr-2 text-indigo-500"></i>
+                    Dashboard
+                  </a>
+                  <a
+                    href="{{ url_for('mark_attendance') }}"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-check-circle mr-2 text-green-500"></i>
+                    Mark Attendance
+                  </a>
+                  <a
+                    href="#"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-history mr-2 text-blue-500"></i>
+                    Attendance History
+                  </a>
+                  {% elif session.get('role') == 'admin' or session.get('role')
+                  == 'teacher' %}
+                  <a
+                    href="{{ url_for('admin_dashboard') }}"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-tachometer-alt mr-2 text-indigo-500"></i>
+                    Dashboard
+                  </a>
+                  <a
+                    href="#"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-users mr-2 text-blue-500"></i>
+                    Manage Students
+                  </a>
+                  <a
+                    href="#"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-qrcode mr-2 text-purple-500"></i>
+                    Generate QR Code
+                  </a>
+                  <a
+                    href="#"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-chart-bar mr-2 text-green-500"></i>
+                    Attendance Reports
+                  </a>
+                  {% endif %}
+                  <div class="border-t border-gray-100 my-1"></div>
+                  <a
+                    href="#"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-user-circle mr-2 text-indigo-500"></i>
+                    My Profile
+                  </a>
+                  <a
+                    href="#"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-cog mr-2 text-gray-500"></i> Settings
+                  </a>
+                  <div class="border-t border-gray-100 my-1"></div>
+                  <a
+                    href="{{ url_for('logout') }}"
+                    class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <a
+              href="{{ url_for('login') }}"
+              class="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            >
+              <i class="fas fa-sign-in-alt mr-1"></i> Login
+            </a>
+            {% endif %}
           </div>
         </div>
 
@@ -98,7 +247,14 @@
           class="mt-8 pt-4 border-t border-gray-200 text-center text-gray-600 text-sm"
         >
           <p>&copy; 2025 Smart Attendance System. All rights reserved.</p>
-          <p>Made with ❤️ by <a href="https://uttamroy01-portfolio.web.app/" class="text-blue-600">Uttam Kumar</a></p>
+          <p>
+            Made with ❤️ by
+            <a
+              href="https://uttamroy01-portfolio.web.app/"
+              class="text-blue-600"
+              >Uttam Kumar</a
+            >
+          </p>
         </div>
       </div>
     </div>
