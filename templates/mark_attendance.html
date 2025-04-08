@@ -275,7 +275,7 @@ block page_title %}Mark Your Attendance{% endblock %} {% block header_right %}
         style="width: 0%"
       ></div>
     </div>
-    <p class="text-xs text-gray-500 mt-1 text-center">Threshold: 78%</p>
+    <p class="text-xs text-gray-500 mt-1 text-center">Threshold: 80%</p>
   </div>
 
   <!-- Status Message -->
@@ -615,7 +615,7 @@ block page_title %}Mark Your Attendance{% endblock %} {% block header_right %}
                   faceVerified: true,
                   locationVerified: false,
                   studentLocation: studentLocation,
-                  skipImageVerification: true, // Flag to indicate we're skipping image verification
+                  skipImageVerification: true, 
                 });
               } else {
                 console.error("No location data available");
@@ -844,7 +844,7 @@ block page_title %}Mark Your Attendance{% endblock %} {% block header_right %}
     percentageText.textContent = `${percentage}%`;
     progressBar.classList.toggle(
       "pulse-animation",
-      percentage >= 70 && percentage < 78
+      percentage >= 70 && percentage < 80
     );
   }
 

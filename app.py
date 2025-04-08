@@ -263,7 +263,7 @@ def verify_face(stored_paths, live_frame):
             similarity_score = float(avg_similarity)  # Convert to float for JSON serialization
 
             # Set the threshold for recognition as requested
-            threshold = 0.78  # Set to 0.78 as requested
+            threshold = 0.80  # Set to 0.80 as requested
 
             if avg_similarity > threshold:
                 logger.info(f"Face verified successfully with similarity {avg_similarity}")
