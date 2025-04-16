@@ -38,8 +38,12 @@ debug_mode = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 socketio = SocketIO(app, async_mode='eventlet' if not debug_mode else None)
 
 # Logging setup
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
+
+# Suppress Werkzeug logs
+werkzeug_logger = logging.getLogger('werkzeug')
+werkzeug_logger.setLevel(logging.ERROR)
 
 # MongoDB setup
 try:
@@ -1493,5 +1497,9 @@ if __name__ == "__main__":
     host = os.environ.get('HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', 5000))
 
+    # Print a custom message showing the localhost URL
+    print(f"\n* Flask application running at: http://localhost:{port}")
+    print(f"* To access the application, open your browser and navigate to: http://localhost:{port}\n")
+
     # Run the app with environment-based configuration
-    socketio.run(app, debug=debug_mode, host=host, port=port)
+    socketio.run(app, debug=debug_mode, host=host, port=port, log_output=False)
