@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: flask-attendance-system
+    env: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn --worker-class eventlet -w 1 -b 0.0.0.0:$PORT 'wsgi:app'
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        value: smart_attendance
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        fromService:
+          type: web
+          name: flask-attendance-system
+          envVarKey: PORT

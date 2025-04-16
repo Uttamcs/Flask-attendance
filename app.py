@@ -1478,17 +1478,17 @@ def mark_attendance(class_session_data, student_id):
         logger.error(f"Error marking attendance: {e}")
         emit('message', "Error: Failed to mark attendance. Please try again.")
 
-if __name__ == "__main__":
-    # Create default admin user if none exists
-    if not users_collection.find_one({"role": "admin"}):
-        users_collection.insert_one({
-            "_id": "admin1",
-            "name": "Admin User",
-            "role": "admin",
-            "password": hash_password("admin123")
-        })
-        logger.info("Created default admin user (admin1/admin123)")
+# Create default admin user if none exists
+if not users_collection.find_one({"role": "admin"}):
+    users_collection.insert_one({
+        "_id": "admin1",
+        "name": "Admin User",
+        "role": "admin",
+        "password": hash_password("admin123")
+    })
+    logger.info("Created default admin user (admin1/admin123)")
 
+if __name__ == "__main__":
     # Get host and port from environment variables
     host = os.environ.get('HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', 5000))
