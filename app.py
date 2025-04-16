@@ -41,9 +41,15 @@ socketio = SocketIO(app, async_mode='eventlet' if not debug_mode else None)
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 
-# Suppress Werkzeug logs
+# Completely suppress Werkzeug logs
 werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.setLevel(logging.ERROR)
+werkzeug_logger.disabled = True
+
+# Suppress Flask-SocketIO logs
+engineio_logger = logging.getLogger('engineio')
+engineio_logger.disabled = True
+socketio_logger = logging.getLogger('socketio')
+socketio_logger.disabled = True
 
 # MongoDB setup
 try:
@@ -1502,4 +1508,5 @@ if __name__ == "__main__":
     print(f"* To access the application, open your browser and navigate to: http://localhost:{port}\n")
 
     # Run the app with environment-based configuration
-    socketio.run(app, debug=debug_mode, host=host, port=port, log_output=False)
+    # Disable all logging output
+    socketio.run(app, debug=False, host=host, port=port, log_output=False)

@@ -2,7 +2,7 @@ services:
   - type: web
     name: flask-attendance-system
     env: python
-    buildCommand: ./build.sh
+    buildCommand: ./render-build.sh
     startCommand: gunicorn --worker-class eventlet -w 1 -b 0.0.0.0:$PORT 'wsgi:app'
     envVars:
       - key: MONGO_URI
