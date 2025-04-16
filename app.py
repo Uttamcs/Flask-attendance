@@ -9,11 +9,19 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_socketio import SocketIO, emit
 from hashlib import sha256
 import logging
-from pyzbar.pyzbar import decode
 import time
 import base64
 from io import BytesIO
 from PIL import Image
+
+# Try to import pyzbar, but provide a fallback if it's not available
+try:
+    from pyzbar.pyzbar import decode
+    PYZBAR_AVAILABLE = True
+    print("pyzbar library loaded successfully")
+except ImportError as e:
+    PYZBAR_AVAILABLE = False
+    print(f"Warning: pyzbar not available - QR code scanning will be disabled: {e}")
 
 # Load environment variables if dotenv is available
 try:
@@ -152,6 +160,11 @@ def capture_face(user_id):
     return face_paths
 
 def scan_qr(frame):
+    # Check if pyzbar is available
+    if not PYZBAR_AVAILABLE:
+        logger.warning("QR code scanning is disabled because pyzbar is not available")
+        return None
+
     try:
         logger.debug("Attempting to scan QR code from frame")
         # Convert frame to grayscale for better QR detection
@@ -967,6 +980,12 @@ def handle_video_frame(data):
             return
 
         # Otherwise, scan for a class QR code
+        if not PYZBAR_AVAILABLE:
+            # If pyzbar is not available, inform the user
+            logger.warning("QR code scanning is disabled because pyzbar is not available")
+            emit('message', "Error: QR code scanning is disabled on this server. Please contact the administrator.")
+            return
+
         qr_data = scan_qr(frame)
         if not qr_data:
             # Don't emit an error for every frame without a QR code
