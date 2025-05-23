@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Manage Classes{% endblock %}
+{% block content %}
+    <h2 class="text-4xl font-bold text-center text-gray-800 mb-6">Manage Classes for Section {{ section }}</h2>
+    
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">My Classes</h3>
+            <a href="{{ url_for('create_class') }}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center">
+                <i class="fas fa-plus mr-2"></i> Create New Class
+            </a>
+        </div>
+        
+        {% if classes %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 text-left">Class Name</th>
+                            <th class="py-3 px-6 text-left">Code</th>
+                            <th class="py-3 px-6 text-left">Created</th>
+                            <th class="py-3 px-6 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-600 text-sm">
+                        {% for class in classes %}
+                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                <td class="py-3 px-6 text-left">{{ class.name }}</td>
+                                <td class="py-3 px-6 text-left">{{ class.code }}</td>
+                                <td class="py-3 px-6 text-left">{{ class.created_at }}</td>
+                                <td class="py-3 px-6 text-center">
+                                    <div class="flex item-center justify-center">
+                                        <a href="{{ url_for('schedule_class', class_code=class.code) }}" class="text-blue-500 hover:text-blue-700 mx-1" title="Schedule Class">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </a>
+                                        <a href="{{ url_for('generate_class_qr', class_code=class.code) }}" class="text-green-500 hover:text-green-700 mx-1" title="Generate QR Code">
+                                            <i class="fas fa-qrcode"></i>
+                                        </a>
+                                        <a href="{{ url_for('view_attendance_reports') }}" class="text-purple-500 hover:text-purple-700 mx-1" title="View Reports">
+                                            <i class="fas fa-clipboard-list"></i>
+                                        </a>
+                                        <form method="POST" action="{{ url_for('advisor_manage_classes') }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this class? This will also delete all schedules, enrollments, and attendance records for this class.');">
+                                            <input type="hidden" name="class_code" value="{{ class.code }}">
+                                            <input type="hidden" name="action" value="delete">
+                                            <button type="submit" class="text-red-500 hover:text-red-700 mx-1" title="Delete Class">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-600">You haven't created any classes yet.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href="{{ url_for('create_class') }}" class="bg-blue-500 text-white rounded-lg p-4 hover:bg-blue-600 text-center flex items-center justify-center">
+            <i class="fas fa-plus-circle mr-2"></i> Create New Class
+        </a>
+        <a href="{{ url_for('schedule_class') }}" class="bg-green-500 text-white rounded-lg p-4 hover:bg-green-600 text-center flex items-center justify-center">
+            <i class="fas fa-calendar-plus mr-2"></i> Schedule Class
+        </a>
+    </div>
+    
+    <div class="mt-6">
+        <a href="{{ url_for('advisor_dashboard') }}" class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 inline-block">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+    </div>
+{% endblock %}

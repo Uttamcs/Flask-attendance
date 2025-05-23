@@ -1,0 +1,187 @@
+{% extends "base.html" %} {% block title %}Student Attendance Report{% endblock
+%} {% block content %}
+<h2 class="text-4xl font-bold text-center text-gray-800 mb-6">
+  Attendance Report
+</h2>
+
+<!-- Student Info -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+  <div class="flex items-center mb-4">
+    <div
+      class="w-16 h-16 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-2xl"
+    >
+      {{ student.name[0] | upper }}
+    </div>
+    <div class="ml-4">
+      <h3 class="text-xl font-semibold text-gray-800">{{ student.name }}</h3>
+      <div class="flex flex-wrap gap-2 mt-1">
+        <span
+          class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium"
+        >
+          ID: {{ student._id }}
+        </span>
+        <span
+          class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium"
+        >
+          Section: {{ student.section }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overall Attendance Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h4 class="text-sm font-medium text-gray-500 mb-1">Total Classes</h4>
+      <p class="text-2xl font-bold">{{ total_records }}</p>
+    </div>
+    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h4 class="text-sm font-medium text-gray-500 mb-1">Present</h4>
+      <p class="text-2xl font-bold">{{ present_records }}</p>
+    </div>
+    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h4 class="text-sm font-medium text-gray-500 mb-1">Attendance Rate</h4>
+      <div class="flex items-center">
+        <div class="w-full bg-gray-200 rounded-full h-2.5 mr-2 max-w-[100px]">
+          {% set color = 'bg-red-600' if overall_percentage < 75 else
+          ('bg-yellow-500' if overall_percentage < 90 else 'bg-green-600') %}
+          <div
+            class="{{ color }} h-2.5 rounded-full"
+            style="width: {{ overall_percentage }}%"
+          ></div>
+        </div>
+        <span class="text-2xl font-bold">{{ overall_percentage }}%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Class-wise Attendance -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+  <h3 class="text-xl font-semibold text-gray-800 mb-4">
+    Class-wise Attendance
+  </h3>
+
+  {% if class_attendance %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white">
+      <thead>
+        <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+          <th class="py-3 px-6 text-left">Class</th>
+          <th class="py-3 px-6 text-center">Present</th>
+          <th class="py-3 px-6 text-center">Total</th>
+          <th class="py-3 px-6 text-center">Attendance Rate</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-600 text-sm">
+        {% for class_code, data in class_attendance.items() %}
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="py-3 px-6 text-left">
+            {{ data.name }} ({{ class_code }})
+          </td>
+          <td class="py-3 px-6 text-center">{{ data.present }}</td>
+          <td class="py-3 px-6 text-center">{{ data.total }}</td>
+          <td class="py-3 px-6 text-center">
+            <div class="flex items-center justify-center">
+              <div
+                class="w-full bg-gray-200 rounded-full h-2.5 mr-2 max-w-[100px]"
+              >
+                {% set percentage = data.percentage %} {% set color =
+                'bg-red-600' if percentage < 75 else ('bg-yellow-500' if
+                percentage < 90 else 'bg-green-600') %}
+                <div
+                  class="{{ color }} h-2.5 rounded-full"
+                  style="width: {{ percentage }}%"
+                ></div>
+              </div>
+              <span>{{ percentage }}%</span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-gray-600">No attendance records found for this student.</p>
+  {% endif %}
+</div>
+
+<!-- Recent Attendance Records -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+  <h3 class="text-xl font-semibold text-gray-800 mb-4">
+    Recent Attendance Records
+  </h3>
+
+  {% if attendance_records %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white">
+      <thead>
+        <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+          <th class="py-3 px-6 text-left">Date</th>
+          <th class="py-3 px-6 text-left">Class</th>
+          <th class="py-3 px-6 text-left">Session</th>
+          <th class="py-3 px-6 text-center">Status</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-600 text-sm">
+        {% for record in attendance_records %}
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="py-3 px-6 text-left">{{ record.date }}</td>
+          <td class="py-3 px-6 text-left">
+            {% if record.class_name %} {{ record.class_name }} {% else %}
+            Unknown Class {% endif %}
+          </td>
+          <td class="py-3 px-6 text-left">
+            {{ record.session_name|default('Regular Session') }}
+          </td>
+          <td class="py-3 px-6 text-center">
+            {% if record.status == "Present" %}
+            <span
+              class="bg-green-200 text-green-700 py-1 px-3 rounded-full text-xs"
+            >
+              Present
+            </span>
+            {% else %}
+            <span
+              class="bg-red-200 text-red-700 py-1 px-3 rounded-full text-xs"
+            >
+              Absent
+            </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-gray-600">No attendance records found for this student.</p>
+  {% endif %}
+</div>
+
+<div class="mt-6">
+  {% if session.role == 'admin' %}
+  <a
+    href="{{ url_for('view_attendance_reports') }}"
+    class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 inline-block"
+  >
+    <i class="fas fa-arrow-left mr-2"></i> Back to Reports
+  </a>
+  {% elif session.role == 'teacher' and session.get('is_advisor', False) %}
+  <a
+    href="{{ url_for('section_attendance_report') }}"
+    class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 inline-block"
+  >
+    <i class="fas fa-arrow-left mr-2"></i> Back to Section Report
+  </a>
+  {% elif session.role == 'teacher' %}
+  <a
+    href="{{ url_for('view_attendance_reports') }}"
+    class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 inline-block"
+  >
+    <i class="fas fa-arrow-left mr-2"></i> Back to Reports
+  </a>
+  {% endif %}
+</div>
+{% endblock %}

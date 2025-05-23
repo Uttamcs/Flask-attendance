@@ -33,7 +33,7 @@
   </div>
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
     <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
       <div class="flex items-center">
         <div class="rounded-full bg-blue-100 p-3 mr-4">
@@ -68,6 +68,20 @@
             Schedules
           </p>
           <p class="text-2xl font-bold text-gray-800">{{ total_schedules }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+      <div class="flex items-center">
+        <div class="rounded-full bg-yellow-100 p-3 mr-4">
+          <i class="fas fa-layer-group text-yellow-500 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 uppercase tracking-wider">Sections</p>
+          <p class="text-2xl font-bold text-gray-800">
+            {{ users_collection.distinct("section")|length }}
+          </p>
         </div>
       </div>
     </div>
@@ -110,8 +124,8 @@
           href="{{ url_for('manage_sections') }}"
           class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
         >
-          <div class="rounded-full bg-orange-100 p-2 mr-3">
-            <i class="fas fa-layer-group text-orange-500"></i>
+          <div class="rounded-full bg-green-100 p-2 mr-3">
+            <i class="fas fa-layer-group text-green-500"></i>
           </div>
           <div>
             <h4 class="font-medium text-gray-900">Manage Sections</h4>
@@ -199,12 +213,83 @@
     </div>
   </div>
 
+  <!-- Attendance & Reports -->
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+        <i class="fas fa-chart-bar text-indigo-500 mr-2"></i> Attendance &
+        Reports
+      </h3>
+      <a
+        href="{{ url_for('view_attendance_reports') }}"
+        class="text-sm text-indigo-600 hover:text-indigo-800"
+      >
+        View All Reports <i class="fas fa-arrow-right ml-1"></i>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <a
+        href="{{ url_for('view_attendance_reports') }}?report_type=By+Student"
+        class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
+      >
+        <div class="rounded-full bg-blue-100 p-3 mb-3">
+          <i class="fas fa-user-graduate text-blue-500 text-xl"></i>
+        </div>
+        <h4 class="font-medium text-gray-900">Student Reports</h4>
+        <p class="text-sm text-gray-600 text-center mt-1">
+          View attendance by student
+        </p>
+      </a>
+
+      <a
+        href="{{ url_for('view_attendance_reports') }}?report_type=By+Class"
+        class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
+      >
+        <div class="rounded-full bg-green-100 p-3 mb-3">
+          <i class="fas fa-chalkboard text-green-500 text-xl"></i>
+        </div>
+        <h4 class="font-medium text-gray-900">Class Reports</h4>
+        <p class="text-sm text-gray-600 text-center mt-1">
+          View attendance by class
+        </p>
+      </a>
+
+      <a
+        href="{{ url_for('view_attendance_reports') }}?report_type=By+Section"
+        class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
+      >
+        <div class="rounded-full bg-purple-100 p-3 mb-3">
+          <i class="fas fa-layer-group text-purple-500 text-xl"></i>
+        </div>
+        <h4 class="font-medium text-gray-900">Section Reports</h4>
+        <p class="text-sm text-gray-600 text-center mt-1">
+          View attendance by section
+        </p>
+      </a>
+    </div>
+  </div>
+
   <!-- Quick Actions -->
   <div class="bg-white rounded-lg shadow-md p-6">
     <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
       <i class="fas fa-bolt text-yellow-500 mr-2"></i> Quick Actions
     </h3>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <a
+        href="{{ url_for('register') }}"
+        class="flex items-center justify-center p-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all"
+      >
+        <i class="fas fa-user-plus mr-2"></i> Register User
+      </a>
+
+      <a
+        href="{{ url_for('create_class') }}"
+        class="flex items-center justify-center p-4 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-all"
+      >
+        <i class="fas fa-chalkboard mr-2"></i> Create Class
+      </a>
+
       <a
         href="{{ url_for('generate_class_qr') }}"
         class="flex items-center justify-center p-4 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-all"

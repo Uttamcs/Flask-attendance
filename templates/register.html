@@ -1,55 +1,105 @@
-{% extends "base.html" %}
-{% block title %}Register User{% endblock %}
-{% block content %}
-    <h2 class="text-4xl font-bold text-center text-gray-100 mb-6">Register New User</h2>
+{% extends "base.html" %} {% block title %}Register User{% endblock %} {% block
+content %}
+<h2 class="text-4xl font-bold text-center text-gray-100 mb-6">
+  Register New User
+</h2>
 
-    <form method="POST" action="{{ url_for('register') }}" class="mt-4">
-        <div class="mb-4">
-            <label for="reg_id" class="block text-gray-700">User ID:</label>
-            <input type="text" id="reg_id" name="reg_id" required class="border rounded-lg p-2 w-full">
-        </div>
+<form method="POST" action="{{ url_for('register') }}" class="mt-4">
+  <div class="mb-4">
+    <label for="reg_id" class="block text-gray-700">User ID:</label>
+    <input
+      type="text"
+      id="reg_id"
+      name="reg_id"
+      required
+      class="border rounded-lg p-2 w-full"
+    />
+  </div>
 
-        <div class="mb-4">
-            <label for="reg_name" class="block text-gray-700">Name:</label>
-            <input type="text" id="reg_name" name="reg_name" required class="border rounded-lg p-2 w-full">
-        </div>
+  <div class="mb-4">
+    <label for="reg_name" class="block text-gray-700">Name:</label>
+    <input
+      type="text"
+      id="reg_name"
+      name="reg_name"
+      required
+      class="border rounded-lg p-2 w-full"
+    />
+  </div>
 
-        <div class="mb-4">
-            <label for="reg_pass" class="block text-gray-700">Password:</label>
-            <input type="password" id="reg_pass" name="reg_pass" required class="border rounded-lg p-2 w-full">
-        </div>
+  <div class="mb-4">
+    <label for="reg_pass" class="block text-gray-700">Password:</label>
+    <input
+      type="password"
+      id="reg_pass"
+      name="reg_pass"
+      required
+      class="border rounded-lg p-2 w-full"
+    />
+  </div>
 
-        <div class="mb-4">
-            <label for="reg_role" class="block text-gray-700">Role:</label>
-            <select id="reg_role" name="reg_role" class="border rounded-lg p-2 w-full" onchange="toggleSectionField()">
-                <option value="student">Student</option>
-                <option value="admin">Admin</option>
-            </select>
-        </div>
+  <div class="mb-4">
+    <label for="reg_role" class="block text-gray-700">Role:</label>
+    <select
+      id="reg_role"
+      name="reg_role"
+      class="border rounded-lg p-2 w-full"
+      onchange="toggleSectionField()"
+    >
+      <option value="student">Student</option>
+      <option value="teacher">Teacher</option>
+      <option value="admin">Admin</option>
+    </select>
+  </div>
 
-        <div id="section_field" class="mb-4">
-            <label for="reg_section" class="block text-gray-700">Section:</label>
-            <input type="text" id="reg_section" name="reg_section" placeholder="e.g., A, B, C" required class="border rounded-lg p-2 w-full">
-        </div>
+  <div id="section_field" class="mb-4">
+    <label for="reg_section" class="block text-gray-700">Section:</label>
+    <input
+      type="text"
+      id="reg_section"
+      name="reg_section"
+      placeholder="e.g., A, B, C"
+      required
+      class="border rounded-lg p-2 w-full"
+    />
+  </div>
 
-        <button type="submit" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 w-full">Register</button>
-    </form>
-    <a href="{{ url_for('admin_dashboard') }}">
-        <button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2 w-full">Back</button>
-    </a>
+  <button
+    type="submit"
+    class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 w-full"
+  >
+    Register
+  </button>
+</form>
+<a href="{{ url_for('admin_dashboard') }}">
+  <button
+    class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2 w-full"
+  >
+    Back
+  </button>
+</a>
 
-    <script>
-        function toggleSectionField() {
-            const role = document.getElementById('reg_role').value;
-            const sectionField = document.getElementById('section_field');
-            if (role === 'student') {
-                sectionField.style.display = 'block';
-                document.getElementById('reg_section').required = true;
-            } else {
-                sectionField.style.display = 'none';
-                document.getElementById('reg_section').required = false;
-            }
-        }
-        toggleSectionField();
-    </script>
+<script>
+  function toggleSectionField() {
+    const role = document.getElementById("reg_role").value;
+    const sectionField = document.getElementById("section_field");
+    if (role === "student" || role === "teacher") {
+      sectionField.style.display = "block";
+      document.getElementById("reg_section").required = true;
+
+      // Update the label text based on role
+      const sectionLabel = document.querySelector('label[for="reg_section"]');
+      if (role === "student") {
+        sectionLabel.textContent = "Section:";
+      } else if (role === "teacher") {
+        sectionLabel.textContent = "Assigned Section (optional):";
+        document.getElementById("reg_section").required = false;
+      }
+    } else {
+      sectionField.style.display = "none";
+      document.getElementById("reg_section").required = false;
+    }
+  }
+  toggleSectionField();
+</script>
 {% endblock %}

@@ -1,0 +1,196 @@
+{% extends "base_sidebar.html" %} {% block title %}Manage Section Students{%
+endblock %} {% block page_title %}Manage Students in Section {{ section }}{%
+endblock %} {% block content %}
+
+<!-- Section Overview -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="text-xl font-semibold text-gray-800">Section Overview</h3>
+    <div class="text-gray-600">
+      <span
+        class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium"
+      >
+        {{ students|length }} Students
+      </span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h4 class="text-lg font-semibold text-gray-700 mb-2">
+        Attendance Summary
+      </h4>
+      <div class="flex flex-col gap-2">
+        <div class="flex justify-between">
+          <span>Perfect Attendance (100%)</span>
+          <span class="font-semibold"
+            >{{ attendance_summary.perfect_count }}</span
+          >
+        </div>
+        <div class="flex justify-between">
+          <span>Good Attendance (≥90%)</span>
+          <span class="font-semibold">{{ attendance_summary.good_count }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Average Attendance (75-89%)</span>
+          <span class="font-semibold">{{ attendance_summary.avg_count }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-red-600">Poor Attendance (<75%)</span>
+          <span class="font-semibold text-red-600"
+            >{{ attendance_summary.poor_count }}</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h4 class="text-lg font-semibold text-gray-700 mb-2">Quick Actions</h4>
+      <div class="flex flex-col gap-2">
+        <a
+          href="{{ url_for('section_attendance_report') }}"
+          class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 text-center"
+        >
+          <i class="fas fa-chart-bar mr-2"></i> View Attendance Report
+        </a>
+        <a
+          href="{{ url_for('email_section_students') }}"
+          class="bg-green-500 text-white rounded-lg p-2 hover:bg-green-600 text-center"
+        >
+          <i class="fas fa-envelope mr-2"></i> Email All Students
+        </a>
+        <a
+          href="{{ url_for('export_section_data') }}"
+          class="bg-purple-500 text-white rounded-lg p-2 hover:bg-purple-600 text-center"
+        >
+          <i class="fas fa-file-export mr-2"></i> Export Student Data
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Students List -->
+<div class="bg-white p-6 rounded-lg shadow-md">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="text-xl font-semibold text-gray-800">Student List</h3>
+    <div class="relative">
+      <input
+        type="text"
+        id="studentSearch"
+        placeholder="Search students..."
+        class="border rounded-lg p-2 pl-8"
+      />
+      <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+    </div>
+  </div>
+
+  {% if students %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white" id="studentTable">
+      <thead>
+        <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+          <th class="py-3 px-6 text-left">ID</th>
+          <th class="py-3 px-6 text-left">Name</th>
+          <th class="py-3 px-6 text-center">Attendance Rate</th>
+          <th class="py-3 px-6 text-center">Last Login</th>
+          <th class="py-3 px-6 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-600 text-sm">
+        {% for student in students %}
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="py-3 px-6 text-left">{{ student._id }}</td>
+          <td class="py-3 px-6 text-left">{{ student.name }}</td>
+          <td class="py-3 px-6 text-center">
+            <div class="flex items-center justify-center">
+              <div
+                class="w-full bg-gray-200 rounded-full h-2.5 mr-2 max-w-[100px]"
+              >
+                {% set percentage = student.get('attendance_rate', 0) %} {% set
+                color = 'bg-red-600' if percentage < 75 else ('bg-yellow-500' if
+                percentage < 90 else 'bg-green-600') %}
+                <div
+                  class="{{ color }} h-2.5 rounded-full"
+                  style="width: {{ percentage }}%"
+                ></div>
+              </div>
+              <span>{{ percentage }}%</span>
+            </div>
+          </td>
+          <td class="py-3 px-6 text-center">
+            {% if student.last_login %} {{ student.last_login }} {% else %}
+            <span class="text-gray-400">Never</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-6 text-center">
+            <div class="flex item-center justify-center">
+              <a
+                href="{{ url_for('view_student_attendance_report', student_id=student._id) }}"
+                class="text-blue-500 hover:text-blue-700 mx-1"
+              >
+                <i class="fas fa-chart-bar"></i>
+              </a>
+              <a
+                href="{{ url_for('email_student', student_id=student._id) }}"
+                class="text-green-500 hover:text-green-700 mx-1"
+                title="Email Student"
+              >
+                <i class="fas fa-envelope"></i>
+              </a>
+              <a
+                href="{{ url_for('flag_student', student_id=student._id) }}"
+                class="text-red-500 hover:text-red-700 mx-1"
+                title="Flag Student"
+              >
+                <i class="fas fa-flag"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-gray-600">No students found in this section.</p>
+  {% endif %}
+</div>
+
+<div class="mt-6">
+  <a
+    href="{{ url_for('advisor_dashboard') }}"
+    class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 inline-block"
+  >
+    <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+  </a>
+</div>
+
+<script>
+  // Simple search functionality
+  document
+    .getElementById("studentSearch")
+    .addEventListener("keyup", function () {
+      const searchText = this.value.toLowerCase();
+      const table = document.getElementById("studentTable");
+      const rows = table
+        .getElementsByTagName("tbody")[0]
+        .getElementsByTagName("tr");
+
+      for (let i = 0; i < rows.length; i++) {
+        const id = rows[i]
+          .getElementsByTagName("td")[0]
+          .textContent.toLowerCase();
+        const name = rows[i]
+          .getElementsByTagName("td")[1]
+          .textContent.toLowerCase();
+
+        if (id.includes(searchText) || name.includes(searchText)) {
+          rows[i].style.display = "";
+        } else {
+          rows[i].style.display = "none";
+        }
+      }
+    });
+</script>
+{% endblock %}

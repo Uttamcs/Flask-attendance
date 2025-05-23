@@ -1,123 +1,258 @@
-{% extends "base.html" %}
-{% block title %}Face Registration{% endblock %}
-{% block content %}
-    <h2 class="text-4xl font-bold text-center text-gray-500 mb-6">Face Registration</h2>
-    <div class="flex justify-around items-center bg-gray-100 p-4 rounded-lg shadow mb-4">
-        <p class="mt-2 text-gray-900">Please look at the camera. We need to capture multiple images of your face.</p>
-        <p class="mt-2 text-gray-900">Images remaining: <span id="countdown">50</span></p>
+{% extends "base_sidebar.html" %} {% block title %}Face Registration{% endblock
+%} {% block page_title %}Face Registration{% endblock %} {% block content %}
+<div class="space-y-6">
+  <!-- Instructions Card -->
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="flex items-center mb-4">
+      <div class="rounded-full bg-blue-100 p-3 mr-4">
+        <i class="fas fa-camera text-blue-500 text-xl"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800">Face Registration</h3>
+        <p class="text-gray-600">
+          We need to capture multiple images of your face for verification.
+        </p>
+      </div>
     </div>
 
-    <div class="flex flex-col items-center mt-4">
-        <video id="video" class="bg-black" width="640" height="480" autoplay></video>
-        <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
-        <button id="startBtn" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 mt-2">Start Camera</button>
-        <a href="{{ url_for('register') }}"><button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2">Cancel</button></a>
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md mb-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <i class="fas fa-info-circle text-blue-500"></i>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-blue-700">
+            Please look directly at the camera and move your head slightly to
+            capture different angles.
+          </p>
+        </div>
+      </div>
     </div>
 
-    <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const startBtn = document.getElementById('startBtn');
-        const countdownElement = document.getElementById('countdown');
-        let captureInterval;
-        let remainingCaptures = 50;
-        let userId = "{{ user_id }}";
+    <div
+      class="flex justify-between items-center bg-gray-100 p-4 rounded-lg mb-4"
+    >
+      <p class="text-gray-900 flex items-center">
+        <i class="fas fa-clock text-indigo-500 mr-2"></i>
+        Images remaining:
+        <span id="countdown" class="ml-2 font-bold text-indigo-600 text-xl"
+          >50</span
+        >
+      </p>
+      <div class="w-64 bg-gray-200 rounded-full h-2.5">
+        <div
+          id="progress-bar"
+          class="bg-indigo-600 h-2.5 rounded-full"
+          style="width: 0%"
+        ></div>
+      </div>
+    </div>
+  </div>
 
-        function startCamera() {
-            if (navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(stream => {
-                        startBtn.disabled = true;
-                        startBtn.classList.add('hidden');
-                        video.srcObject = stream;
-                        console.log("Camera started successfully");
-                        startCapturing();
-                    })
-                    .catch(err => {
-                        console.error("Error accessing camera: ", err);
-                        alert("Failed to access camera: " + err.message);
-                    });
-            } else {
-                console.error("Camera not supported by browser!");
-                alert("Your browser does not support camera access.");
-            }
+  <!-- Camera Section -->
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="flex flex-col items-center">
+      <video
+        id="video"
+        class="bg-black rounded-lg shadow-md"
+        width="640"
+        height="480"
+        autoplay
+      ></video>
+      <canvas
+        id="canvas"
+        width="640"
+        height="480"
+        style="display: none"
+      ></canvas>
+      <div class="mt-4 flex space-x-4">
+        <button
+          id="startBtn"
+          class="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600 transition-all flex items-center"
+        >
+          <i class="fas fa-play mr-2"></i> Start Camera
+        </button>
+        <a
+          href="{{ url_for('register') }}"
+          class="bg-gray-500 text-white rounded-lg px-4 py-2 hover:bg-gray-600 transition-all flex items-center"
+        >
+          <i class="fas fa-times mr-2"></i> Cancel
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const startBtn = document.getElementById("startBtn");
+  const countdownElement = document.getElementById("countdown");
+  const progressBar = document.getElementById("progress-bar");
+  let captureInterval;
+  let remainingCaptures = 50;
+  const totalCaptures = 50;
+  let userId = "{{ user_id }}";
+
+  function updateProgressBar() {
+    const progress =
+      ((totalCaptures - remainingCaptures) / totalCaptures) * 100;
+    progressBar.style.width = `${progress}%`;
+  }
+
+  function startCamera() {
+    if (navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          startBtn.disabled = true;
+          startBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin mr-2"></i> Capturing...';
+          startBtn.classList.add("bg-indigo-600");
+          startBtn.classList.remove("bg-blue-500", "hover:bg-blue-600");
+          video.srcObject = stream;
+          console.log("Camera started successfully");
+          startCapturing();
+        })
+        .catch((err) => {
+          console.error("Error accessing camera: ", err);
+          alert("Failed to access camera: " + err.message);
+        });
+    } else {
+      console.error("Camera not supported by browser!");
+      alert("Your browser does not support camera access.");
+    }
+  }
+
+  function startCapturing() {
+    // Capture an image every 500ms
+    captureInterval = setInterval(() => {
+      if (remainingCaptures <= 0) {
+        clearInterval(captureInterval);
+        finishCapturing();
+        return;
+      }
+
+      captureImage();
+      remainingCaptures--;
+      countdownElement.textContent = remainingCaptures;
+      updateProgressBar();
+    }, 500);
+  }
+
+  function captureImage() {
+    try {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = canvas.toDataURL("image/jpeg", 0.8);
+
+      // Show a flash effect
+      const flashElement = document.createElement("div");
+      flashElement.style.position = "absolute";
+      flashElement.style.top = "0";
+      flashElement.style.left = "0";
+      flashElement.style.width = "100%";
+      flashElement.style.height = "100%";
+      flashElement.style.backgroundColor = "white";
+      flashElement.style.opacity = "0.3";
+      flashElement.style.pointerEvents = "none";
+      flashElement.style.zIndex = "10";
+      flashElement.style.animation = "flash 0.3s ease-out";
+
+      // Add flash animation
+      const style = document.createElement("style");
+      style.textContent = `
+          @keyframes flash {
+              0% { opacity: 0.5; }
+              100% { opacity: 0; }
+          }
+      `;
+      document.head.appendChild(style);
+
+      video.parentElement.style.position = "relative";
+      video.parentElement.appendChild(flashElement);
+
+      // Remove flash after animation
+      setTimeout(() => {
+        flashElement.remove();
+      }, 300);
+
+      // Send the image to the server
+      fetch("/capture_face_image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image: imageData,
+          user_id: userId,
+          count: totalCaptures - remainingCaptures,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Success:", data);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    } catch (err) {
+      console.error("Error capturing image: ", err);
+    }
+  }
+
+  function finishCapturing() {
+    // Update UI to show completion
+    startBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Complete';
+    startBtn.classList.remove("bg-indigo-600");
+    startBtn.classList.add("bg-green-500");
+
+    // Stop the video stream
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach((track) => track.stop());
+    }
+
+    // Show completion message
+    const completionMessage = document.createElement("div");
+    completionMessage.className =
+      "absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 rounded-lg";
+    completionMessage.innerHTML = `
+        <div class="text-center p-6 bg-white rounded-lg shadow-xl">
+            <i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Registration Complete!</h3>
+            <p class="text-gray-600 mb-4">Face images captured successfully.</p>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
+            <p class="text-sm text-gray-500 mt-2">Redirecting...</p>
+        </div>
+    `;
+
+    video.parentElement.style.position = "relative";
+    video.parentElement.appendChild(completionMessage);
+
+    // Redirect to complete registration
+    fetch("/complete_face_registration", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: userId,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          window.location.href = data.redirect_url;
+        } else {
+          alert("Error: " + data.message);
         }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("An error occurred while completing registration.");
+      });
+  }
 
-        function startCapturing() {
-            // Capture an image every 500ms
-            captureInterval = setInterval(() => {
-                if (remainingCaptures <= 0) {
-                    clearInterval(captureInterval);
-                    finishCapturing();
-                    return;
-                }
-                
-                captureImage();
-                remainingCaptures--;
-                countdownElement.textContent = remainingCaptures;
-            }, 500);
-        }
-
-        function captureImage() {
-            try {
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageData = canvas.toDataURL('image/jpeg', 0.8);
-                
-                // Send the image to the server
-                fetch('/capture_face_image', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        image: imageData,
-                        user_id: userId,
-                        count: 50 - remainingCaptures
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Success:', data);
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-            } catch (err) {
-                console.error("Error capturing image: ", err);
-            }
-        }
-
-        function finishCapturing() {
-            // Stop the video stream
-            if (video.srcObject) {
-                video.srcObject.getTracks().forEach(track => track.stop());
-            }
-            
-            // Redirect to complete registration
-            fetch('/complete_face_registration', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: userId
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = data.redirect_url;
-                } else {
-                    alert("Error: " + data.message);
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert("An error occurred while completing registration.");
-            });
-        }
-
-        startBtn.addEventListener('click', startCamera);
-    </script>
+  startBtn.addEventListener("click", startCamera);
+</script>
 {% endblock %}

@@ -1,51 +1,113 @@
-{% extends "base.html" %}
-{% block title %}Schedule Class{% endblock %}
-{% block content %}
-    <h2 class="text-4xl font-bold text-center text-gray-100 mb-6">Schedule a Class</h2>
+{% extends "base.html" %} {% block title %}Schedule Class{% endblock %} {% block
+content %}
+<h2 class="text-4xl font-bold text-center text-gray-100 mb-6">
+  Schedule a Class
+</h2>
 
-    <form method="POST" action="{{ url_for('schedule_class') }}" class="mt-4">
-        <div class="mb-4">
-            <label for="class_select" class="block text-gray-700">Select Class:</label>
-            <select id="class_select" name="class_select" class="border rounded-lg p-2 w-full" onchange="updateClassCode()">
-                <option value="" selected>-- Select a Class --</option>
-                {% for class in classes %}
-                    <option value="{{ class.code }}">{{ class.name }} ({{ class.code }})</option>
-                {% endfor %}
-            </select>
-        </div>
+<form method="POST" action="{{ url_for('schedule_class') }}" class="mt-4">
+  <div class="mb-4">
+    <label for="class_select" class="block text-gray-700">Select Class:</label>
+    <select
+      id="class_select"
+      name="class_select"
+      class="border rounded-lg p-2 w-full"
+      onchange="updateClassCode()"
+    >
+      <option value="" selected>-- Select a Class --</option>
+      {% for class in classes %}
+      <option value="{{ class.code }}">
+        {{ class.name }} ({{ class.code }})
+      </option>
+      {% endfor %}
+    </select>
+  </div>
 
-        <div class="mb-4">
-            <label for="sched_class_code" class="block text-gray-700">Class Code:</label>
-            <input type="text" id="sched_class_code" name="sched_class_code" readonly required class="border rounded-lg p-2 w-full bg-gray-100">
-        </div>
+  <div class="mb-4">
+    <label for="sched_class_code" class="block text-gray-700"
+      >Class Code:</label
+    >
+    <input
+      type="text"
+      id="sched_class_code"
+      name="sched_class_code"
+      readonly
+      required
+      class="border rounded-lg p-2 w-full bg-gray-100"
+    />
+  </div>
 
-        <div class="mb-4">
-            <label for="sched_start_time" class="block text-gray-700">Start Time:</label>
-            <input type="datetime-local" id="sched_start_time" name="sched_start_time" required class="border rounded-lg p-2 w-full">
-        </div>
+  <div class="mb-4">
+    <label for="sched_start_time" class="block text-gray-700"
+      >Start Time:</label
+    >
+    <input
+      type="datetime-local"
+      id="sched_start_time"
+      name="sched_start_time"
+      required
+      class="border rounded-lg p-2 w-full"
+    />
+  </div>
 
-        <div class="mb-4">
-            <label for="sched_end_time" class="block text-gray-700">End Time:</label>
-            <input type="datetime-local" id="sched_end_time" name="sched_end_time" required class="border rounded-lg p-2 w-full">
-        </div>
+  <div class="mb-4">
+    <label for="sched_end_time" class="block text-gray-700">End Time:</label>
+    <input
+      type="datetime-local"
+      id="sched_end_time"
+      name="sched_end_time"
+      required
+      class="border rounded-lg p-2 w-full"
+    />
+  </div>
 
-        <button type="submit" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 w-full">Schedule</button>
-    </form>
-    <a href="{{ url_for('admin_dashboard') }}">
-        <button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2 w-full">Back</button>
-    </a>
+  <div class="mb-4">
+    <label for="assigned_teacher_id" class="block text-gray-700"
+      >Assign Teacher:</label
+    >
+    <select
+      id="assigned_teacher_id"
+      name="assigned_teacher_id"
+      class="border rounded-lg p-2 w-full"
+    >
+      <option value="{{ session.user_id }}" selected>
+        Myself ({{ session.name }})
+      </option>
+      {% for teacher in teachers %} {% if teacher._id != session.user_id %}
+      <option value="{{ teacher._id }}">{{ teacher.name }}</option>
+      {% endif %} {% endfor %}
+    </select>
+    <p class="text-sm text-gray-500 mt-1">
+      The assigned teacher will be able to generate QR codes for this class
+      schedule.
+    </p>
+  </div>
 
-    <script>
-        function updateClassCode() {
-            const select = document.getElementById('class_select');
-            const classCodeInput = document.getElementById('sched_class_code');
-            const selectedValue = select.value;
+  <button
+    type="submit"
+    class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 w-full"
+  >
+    Schedule
+  </button>
+</form>
+<a href="{{ url_for('admin_dashboard') }}">
+  <button
+    class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2 w-full"
+  >
+    Back
+  </button>
+</a>
 
-            if (selectedValue) {
-                classCodeInput.value = selectedValue;
-            } else {
-                classCodeInput.value = ''; // Clear input if placeholder is selected
-            }
-        }
-    </script>
+<script>
+  function updateClassCode() {
+    const select = document.getElementById("class_select");
+    const classCodeInput = document.getElementById("sched_class_code");
+    const selectedValue = select.value;
+
+    if (selectedValue) {
+      classCodeInput.value = selectedValue;
+    } else {
+      classCodeInput.value = ""; // Clear input if placeholder is selected
+    }
+  }
+</script>
 {% endblock %}

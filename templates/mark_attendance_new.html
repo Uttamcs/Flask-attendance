@@ -1,0 +1,884 @@
+{% extends "base_sidebar.html" %} {% block title %}Mark Attendance{% endblock %}
+{% block page_title %}Mark Attendance{% endblock %} {% block head %}
+<style>
+  .verification-step {
+    transition: all 0.3s ease;
+  }
+
+  .verification-step.active {
+    border-color: #4f46e5;
+  }
+
+  .verification-step.completed {
+    border-color: #10b981;
+    background-color: #f0fdf4;
+  }
+
+  .verification-step.error {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+  }
+
+  #video-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 0.5rem;
+  }
+
+  #video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    z-index: 10;
+  }
+
+  .progress-container {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+    height: 8px;
+    margin-top: 1rem;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background-color: #4f46e5;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+  }
+
+  .countdown-timer {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .face-box {
+    position: absolute;
+    border: 2px solid #4f46e5;
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
+  }
+
+  .similarity-score {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+  }
+
+  .status-indicator.pending {
+    background-color: #e5e7eb;
+    color: #6b7280;
+  }
+
+  .status-indicator.active {
+    background-color: #e0e7ff;
+    color: #4f46e5;
+    animation: pulse 1.5s infinite;
+  }
+
+  .status-indicator.completed {
+    background-color: #d1fae5;
+    color: #10b981;
+  }
+
+  .status-indicator.error {
+    background-color: #fee2e2;
+    color: #ef4444;
+  }
+
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+    }
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="space-y-6">
+  <!-- Header Section -->
+  <div
+    class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white shadow-lg"
+  >
+    <h2 class="text-2xl font-bold mb-2">Mark Attendance</h2>
+    <p class="opacity-90">
+      Complete the verification process to mark your attendance
+    </p>
+  </div>
+
+  <!-- Verification Steps -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div
+      id="step1"
+      class="verification-step active border border-gray-200 rounded-lg p-4 bg-white"
+    >
+      <div class="flex items-center mb-3">
+        <div id="step1-indicator" class="status-indicator active mr-3">
+          <i class="fas fa-qrcode"></i>
+        </div>
+        <h3 class="font-medium text-gray-900">Step 1: Scan QR Code</h3>
+      </div>
+      <p class="text-sm text-gray-600">
+        Scan the QR code displayed by your teacher to begin the attendance
+        verification process.
+      </p>
+      <div id="step1-status" class="mt-3 text-sm text-indigo-600">
+        <i class="fas fa-spinner fa-spin mr-1"></i> Waiting for QR code...
+      </div>
+    </div>
+
+    <div
+      id="step2"
+      class="verification-step border border-gray-200 rounded-lg p-4 bg-white"
+    >
+      <div class="flex items-center mb-3">
+        <div id="step2-indicator" class="status-indicator pending mr-3">
+          <i class="fas fa-user"></i>
+        </div>
+        <h3 class="font-medium text-gray-900">Step 2: Face Verification</h3>
+      </div>
+      <p class="text-sm text-gray-600">
+        Look at the camera to verify your identity through facial recognition.
+      </p>
+      <div id="step2-status" class="mt-3 text-sm text-gray-500">
+        Waiting for QR code scan...
+      </div>
+    </div>
+
+    <div
+      id="step3"
+      class="verification-step border border-gray-200 rounded-lg p-4 bg-white"
+    >
+      <div class="flex items-center mb-3">
+        <div id="step3-indicator" class="status-indicator pending mr-3">
+          <i class="fas fa-map-marker-alt"></i>
+        </div>
+        <h3 class="font-medium text-gray-900">Step 3: Location Verification</h3>
+      </div>
+      <p class="text-sm text-gray-600">
+        Your location will be verified to ensure you're in the classroom (within
+        20 meters).
+      </p>
+      <div id="step3-status" class="mt-3 text-sm text-gray-500">
+        Waiting for face verification...
+      </div>
+    </div>
+
+    <div
+      id="step4"
+      class="verification-step border border-gray-200 rounded-lg p-4 bg-white"
+    >
+      <div class="flex items-center mb-3">
+        <div id="step4-indicator" class="status-indicator pending mr-3">
+          <i class="fas fa-check-double"></i>
+        </div>
+        <h3 class="font-medium text-gray-900">Step 4: Mark Attendance</h3>
+      </div>
+      <p class="text-sm text-gray-600">
+        After all verifications are complete, your attendance will be recorded
+        in the system.
+      </p>
+      <div id="step4-status" class="mt-3 text-sm text-gray-500">
+        Waiting for location verification...
+      </div>
+    </div>
+  </div>
+
+  <!-- Camera Feed -->
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+      <i class="fas fa-camera text-indigo-500 mr-2"></i> Camera Feed
+    </h3>
+
+    <div id="video-container" class="border-2 border-gray-200 rounded-lg">
+      <video id="video" width="100%" height="auto" autoplay playsinline></video>
+
+      <div id="video-overlay" class="hidden">
+        <i
+          id="overlay-icon"
+          class="fas fa-spinner fa-spin text-5xl text-blue-500 mb-3"
+        ></i>
+        <h3 id="overlay-title" class="text-xl font-bold">Processing...</h3>
+        <p id="overlay-message" class="text-sm opacity-80 mt-2">
+          Please wait while we verify your attendance.
+        </p>
+        <button
+          id="close-btn"
+          class="mt-4 px-4 py-2 bg-white text-indigo-700 rounded-lg font-medium text-sm hover:bg-opacity-90 transition-all"
+        >
+          Close Camera
+        </button>
+      </div>
+
+      <div class="countdown-timer hidden"><span id="countdown">60</span>s</div>
+
+      <div class="similarity-score hidden">
+        Similarity: <span id="similarity">0</span>%
+      </div>
+    </div>
+
+    <div class="mt-4 flex justify-between items-center">
+      <div id="status-message" class="text-sm text-gray-600">
+        Please allow camera access to begin.
+      </div>
+
+      <button
+        id="restart-btn"
+        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-all hidden"
+      >
+        <i class="fas fa-redo mr-1"></i> Restart
+      </button>
+    </div>
+  </div>
+
+  <!-- Active Classes -->
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+      <i class="fas fa-calendar-check text-green-500 mr-2"></i> Active Classes
+    </h3>
+
+    {% if schedules %}
+    <div class="space-y-4">
+      {% for schedule in schedules %}
+      <div
+        class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-all"
+      >
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between"
+        >
+          <div>
+            <h4 class="font-medium text-gray-900">{{ schedule.class_name }}</h4>
+            <p class="text-sm text-gray-500">Code: {{ schedule.class_code }}</p>
+          </div>
+          <div class="mt-2 md:mt-0">
+            <div class="flex items-center text-sm text-gray-600">
+              <i class="fas fa-clock mr-2 text-indigo-500"></i>
+              <span>{{ schedule.start_time }} - {{ schedule.end_time }}</span>
+            </div>
+          </div>
+          <div class="mt-3 md:mt-0">
+            {% if marked_attendance.get(schedule.class_code, False) %}
+            <span
+              class="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 text-sm rounded-lg"
+            >
+              <i class="fas fa-check-circle mr-1"></i> Attendance Marked
+            </span>
+            {% else %}
+            <button
+              class="scan-qr-btn inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-all"
+            >
+              <i class="fas fa-qrcode mr-1"></i> Scan QR Code
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div
+      class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300"
+    >
+      <i class="fas fa-calendar-times text-gray-400 text-4xl mb-3"></i>
+      <p class="text-gray-600">No active classes at the moment.</p>
+      <a
+        href="{{ url_for('view_class_schedule') }}"
+        class="mt-3 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition-all"
+      >
+        View Class Schedule
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Instructions -->
+  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <i class="fas fa-info-circle text-blue-500"></i>
+      </div>
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-blue-800">Instructions</h3>
+        <div class="mt-2 text-sm text-blue-700">
+          <ul class="list-disc pl-5 space-y-1">
+            <li>Make sure you are in a well-lit area</li>
+            <li>Look directly at the camera during face verification</li>
+            <li>Enable location services on your device</li>
+            <li>Stay within 20 meters of the classroom location</li>
+            <li>Complete all verification steps to mark attendance</li>
+          </ul>
+        </div>
+
+        {% if not has_face_data %}
+        <div class="mt-3 p-2 bg-red-100 text-red-800 rounded">
+          <i class="fas fa-exclamation-triangle mr-1"></i>
+          <strong>Warning:</strong> You don't have face data registered. Please
+          contact your administrator.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<!-- Include Socket.IO client library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // DOM elements
+    const video = document.getElementById("video");
+    const videoContainer = document.getElementById("video-container");
+    const statusMessage = document.getElementById("status-message");
+    const restartBtn = document.getElementById("restart-btn");
+    const closeBtn = document.getElementById("close-btn");
+    const videoOverlay = document.getElementById("video-overlay");
+    const overlayIcon = document.getElementById("overlay-icon");
+    const overlayTitle = document.getElementById("overlay-title");
+    const overlayMessage = document.getElementById("overlay-message");
+    const similarityElement = document.getElementById("similarity");
+    const countdownElement = document.querySelector(".countdown-timer");
+    const similarityScoreElement = document.querySelector(".similarity-score");
+
+    // Create a hidden canvas for processing video frames
+    const canvas = document.createElement("canvas");
+    canvas.width = 640;
+    canvas.height = 480;
+    canvas.style.display = "none";
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+
+    // State variables
+    let socket;
+    let qrDetected = false;
+    let classSessionData = null;
+    let faceVerified = false;
+    let locationVerified = false;
+    let studentLocation = null;
+    let processingComplete = false;
+
+    // Ensure overlay is hidden at start
+    videoOverlay.classList.add("hidden");
+
+    // Start the camera and verification process
+    startCamera();
+
+    function startCamera() {
+      statusMessage.textContent = "Starting camera...";
+
+      if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices
+          .getUserMedia({ video: { width: 640, height: 480 } })
+          .then((stream) => {
+            // Set video source
+            video.srcObject = stream;
+
+            // Wait for video to be ready before starting the process
+            video.onloadedmetadata = function () {
+              video.play();
+              console.log("Camera started successfully");
+              statusMessage.textContent =
+                "Camera active - Ready to scan QR code";
+
+              // Start the WebSocket connection
+              connectSocketIO();
+
+              // Start the countdown timer
+              countdownElement.classList.remove("hidden");
+              startCountdown();
+
+              // Get student location
+              getStudentLocation();
+
+              // Start sending frames for processing
+              setTimeout(() => {
+                sendFrames();
+              }, 500);
+            };
+          })
+          .catch((err) => {
+            console.error("Error accessing camera: ", err);
+            statusMessage.innerHTML = `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> Camera error: ${err.message}`;
+            alert(
+              `Failed to access camera: ${err.message}. Please ensure camera permissions are granted.`
+            );
+          });
+      } else {
+        console.error("Camera not supported by browser!");
+        statusMessage.innerHTML = `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> Camera not supported by your browser`;
+        alert(
+          "Your browser does not support camera access. Please try a different browser."
+        );
+      }
+    }
+
+    function connectSocketIO() {
+      socket = io.connect(window.location.origin + "/video_feed");
+
+      socket.on("connect", () => {
+        console.log("Socket.IO connected");
+      });
+
+      socket.on("disconnect", () => {
+        console.log("Socket.IO disconnected");
+      });
+
+      socket.on("message", (data) => {
+        if (processingComplete) return;
+
+        console.log("Received message:", data);
+
+        if (typeof data === "object") {
+          // Handle QR code detection
+          if (data.type === "qr_detected") {
+            qrDetected = true;
+            classSessionData = data.data;
+            updateStep(1, true); // Mark step 1 as completed
+            updateStep(2); // Move to step 2
+            statusMessage.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-1"></i> QR code detected: ${data.data.class_name}`;
+          }
+
+          // Handle face verification progress
+          else if (data.type === "face_progress") {
+            const similarity = data.similarity || 0.0;
+            updateFaceProgress(similarity);
+            if (!similarityScoreElement.classList.contains("hidden")) {
+              similarityScoreElement.classList.remove("hidden");
+            }
+          }
+
+          // Handle face verification success
+          else if (data.type === "face_verified") {
+            faceVerified = true;
+            const similarity = data.similarity || 0.0;
+            updateFaceProgress(similarity);
+            updateStep(2, true); // Mark step 2 as completed
+            updateStep(3); // Move to step 3
+            statusMessage.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-1"></i> Face verified successfully`;
+
+            // If we have location data, send it for verification
+            if (studentLocation) {
+              socket.emit("message", {
+                qrDetected: true,
+                classSessionData: classSessionData,
+                faceVerified: true,
+                locationVerified: false,
+                studentLocation: studentLocation,
+                skipImageVerification: true,
+              });
+            } else {
+              // Try to get location again
+              getStudentLocation();
+            }
+          }
+
+          // Handle location verification
+          else if (data.type === "location_verified") {
+            locationVerified = true;
+            updateStep(3, true); // Mark step 3 as completed
+            statusMessage.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-1"></i> Location verified successfully`;
+
+            // Update UI to show marking attendance in progress
+            statusMessage.innerHTML = `<i class="fas fa-spinner fa-spin text-blue-500 mr-1"></i> Marking attendance...`;
+
+            // Move to step 4 (marking attendance)
+            updateStep(4);
+
+            // Mark attendance with a slight delay to show the status
+            setTimeout(() => {
+              // Add verification flag to ensure we get a proper response
+              socket.emit("message", {
+                markAttendance: true,
+                classSessionData: classSessionData,
+                faceVerified: true,
+                locationVerified: true,
+                verifyAttendance: true,
+              });
+            }, 1000);
+          }
+
+          // Handle attendance marked
+          else if (data.type === "attendance_marked") {
+            processingComplete = true;
+
+            // Mark step 4 as completed
+            updateStep(4, true);
+
+            // Update status message
+            statusMessage.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-1"></i> Attendance marked successfully!`;
+
+            // Show success overlay
+            showOverlay(
+              "success",
+              "Attendance Marked Successfully",
+              `Your attendance has been marked for ${data.class_name} - ${data.session_name} on ${data.date}`,
+              "fas fa-check-circle text-5xl text-green-500 mb-3"
+            );
+
+            // Clean up resources
+            cleanupResources();
+
+            // Show alert after a short delay
+            setTimeout(() => {
+              alert(
+                `Attendance marked successfully!\nClass: ${data.class_name}\nSession: ${data.session_name}\nDate: ${data.date}`
+              );
+            }, 500);
+          }
+        }
+        // Handle string messages (usually errors)
+        else if (typeof data === "string") {
+          if (data.startsWith("Error:")) {
+            statusMessage.innerHTML = `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> ${data}`;
+
+            // Handle specific errors
+            if (data.includes("already marked")) {
+              processingComplete = true;
+
+              // If we have location verification, mark step 3 as completed
+              if (locationVerified) {
+                updateStep(3, true);
+              }
+
+              // Mark step 4 as completed (attendance is already marked)
+              updateStep(4, true);
+
+              // Extract class and session information if available in the error message
+              let detailMessage =
+                "You have already marked attendance for this class.";
+
+              // Try to extract more details from the error message
+              const classMatch = data.match(
+                /for\s+([^-]+)\s+-\s+([^on]+)\s+on\s+(.+?)(?=\.|$)/i
+              );
+              if (classMatch && classMatch.length >= 4) {
+                const className = classMatch[1].trim();
+                const sessionName = classMatch[2].trim();
+                const date = classMatch[3].trim();
+                detailMessage = `You have already marked attendance for ${className} - ${sessionName} on ${date}`;
+              }
+
+              // Show already marked overlay
+              showOverlay(
+                "already-marked",
+                "Attendance Already Marked",
+                detailMessage,
+                "fas fa-info-circle text-5xl text-blue-500 mb-3"
+              );
+
+              // Clean up resources
+              cleanupResources();
+
+              // Show alert after a short delay with a clearer message
+              setTimeout(() => {
+                alert(
+                  "Attendance verification complete: Your attendance was already marked for this class session."
+                );
+              }, 500);
+            }
+          }
+        }
+      });
+    }
+
+    function sendFrames() {
+      if (processingComplete || faceVerified) return;
+
+      if (!socket || !socket.connected) {
+        setTimeout(sendFrames, 200);
+        return;
+      }
+
+      try {
+        // Make sure video is loaded before drawing to canvas
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const frame = canvas.toDataURL("image/jpeg", 0.8);
+
+          // Verify we have valid image data before sending
+          if (frame && frame.length > 100) {
+            const messageData = {
+              image: frame,
+              qrDetected: qrDetected,
+              classSessionData: classSessionData,
+              faceVerified: faceVerified,
+              locationVerified: locationVerified,
+            };
+
+            if (studentLocation) {
+              messageData.studentLocation = studentLocation;
+            }
+
+            socket.emit("message", messageData);
+          }
+        }
+      } catch (err) {
+        console.error("Error sending frame:", err);
+      }
+
+      // Continue sending frames if not complete
+      if (!processingComplete && !faceVerified) {
+        setTimeout(sendFrames, 200);
+      }
+    }
+
+    function getStudentLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            studentLocation = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: position.coords.accuracy,
+            };
+            console.log("Location captured:", studentLocation);
+
+            // If face is already verified, send location for verification
+            if (faceVerified && !locationVerified && classSessionData) {
+              socket.emit("message", {
+                qrDetected: true,
+                classSessionData: classSessionData,
+                faceVerified: true,
+                locationVerified: false,
+                studentLocation: studentLocation,
+                skipImageVerification: true,
+              });
+            }
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+            statusMessage.innerHTML = `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> Location error: ${error.message}`;
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      } else {
+        statusMessage.innerHTML = `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> Geolocation not supported by your browser`;
+      }
+    }
+
+    function updateStep(step, completed = false) {
+      // Reset all steps
+      for (let i = 1; i <= 4; i++) {
+        const stepElement = document.getElementById(`step${i}`);
+        const indicatorElement = document.getElementById(`step${i}-indicator`);
+
+        if (stepElement && indicatorElement) {
+          stepElement.classList.remove("active", "completed");
+          indicatorElement.classList.remove("active", "completed");
+          indicatorElement.classList.add("pending");
+        }
+      }
+
+      // Update completed steps
+      for (let i = 1; i < step; i++) {
+        const stepElement = document.getElementById(`step${i}`);
+        const indicatorElement = document.getElementById(`step${i}-indicator`);
+
+        if (stepElement && indicatorElement) {
+          stepElement.classList.add("completed");
+          indicatorElement.classList.remove("pending", "active");
+          indicatorElement.classList.add("completed");
+
+          // Update status text
+          const statusElement = document.getElementById(`step${i}-status`);
+          if (statusElement) {
+            if (i === 1) {
+              statusElement.innerHTML =
+                '<i class="fas fa-check text-green-500 mr-1"></i> QR code detected!';
+            } else if (i === 2) {
+              statusElement.innerHTML =
+                '<i class="fas fa-check text-green-500 mr-1"></i> Face verified!';
+            } else if (i === 3) {
+              statusElement.innerHTML =
+                '<i class="fas fa-check text-green-500 mr-1"></i> Location verified!';
+            } else if (i === 4) {
+              statusElement.innerHTML =
+                '<i class="fas fa-check text-green-500 mr-1"></i> Attendance marked!';
+            }
+          }
+        }
+      }
+
+      // Update current step
+      if (!completed) {
+        const currentStep = document.getElementById(`step${step}`);
+        const currentIndicator = document.getElementById(
+          `step${step}-indicator`
+        );
+        const currentStatus = document.getElementById(`step${step}-status`);
+
+        if (currentStep && currentIndicator && currentStatus) {
+          currentStep.classList.add("active");
+          currentIndicator.classList.remove("pending");
+          currentIndicator.classList.add("active");
+
+          // Update status text
+          if (step === 1) {
+            currentStatus.innerHTML =
+              '<i class="fas fa-spinner fa-spin mr-1"></i> Scanning QR code...';
+          } else if (step === 2) {
+            currentStatus.innerHTML =
+              '<i class="fas fa-spinner fa-spin mr-1"></i> Verifying face...';
+          } else if (step === 3) {
+            currentStatus.innerHTML =
+              '<i class="fas fa-spinner fa-spin mr-1"></i> Verifying location...';
+          } else if (step === 4) {
+            currentStatus.innerHTML =
+              '<i class="fas fa-spinner fa-spin mr-1"></i> Marking attendance...';
+          }
+
+          currentStatus.classList.remove("text-gray-500");
+          currentStatus.classList.add("text-indigo-600");
+        }
+      }
+      // If this step is completed too
+      else {
+        const currentStep = document.getElementById(`step${step}`);
+        const currentIndicator = document.getElementById(
+          `step${step}-indicator`
+        );
+        const currentStatus = document.getElementById(`step${step}-status`);
+
+        if (currentStep && currentIndicator && currentStatus) {
+          currentStep.classList.add("completed");
+          currentIndicator.classList.remove("pending", "active");
+          currentIndicator.classList.add("completed");
+
+          // Update status text
+          if (step === 1) {
+            currentStatus.innerHTML =
+              '<i class="fas fa-check text-green-500 mr-1"></i> QR code detected!';
+          } else if (step === 2) {
+            currentStatus.innerHTML =
+              '<i class="fas fa-check text-green-500 mr-1"></i> Face verified!';
+          } else if (step === 3) {
+            currentStatus.innerHTML =
+              '<i class="fas fa-check text-green-500 mr-1"></i> Location verified!';
+          } else if (step === 4) {
+            currentStatus.innerHTML =
+              '<i class="fas fa-check text-green-500 mr-1"></i> Attendance marked!';
+          }
+
+          currentStatus.classList.remove("text-gray-500");
+          currentStatus.classList.add("text-green-600");
+        }
+      }
+    }
+
+    function updateFaceProgress(similarity) {
+      const percentage = Math.min(Math.round(similarity * 100), 100);
+      similarityElement.textContent = percentage;
+    }
+
+    function startCountdown() {
+      let seconds = 60;
+      const countdownTimer = document.getElementById("countdown");
+
+      const interval = setInterval(() => {
+        countdownTimer.textContent = seconds;
+        seconds--;
+
+        if (seconds < 0 || processingComplete) {
+          clearInterval(interval);
+
+          if (!processingComplete) {
+            // Time's up
+            statusMessage.innerHTML = `<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> Time's up! Please try again.`;
+
+            // Show timeout overlay
+            showOverlay(
+              "timeout",
+              "Time Expired",
+              "The verification process took too long. Please try again.",
+              "fas fa-clock text-5xl text-red-500 mb-3"
+            );
+
+            // Clean up resources
+            cleanupResources();
+          }
+        }
+      }, 1000);
+    }
+
+    function showOverlay(type, title, message, iconClass) {
+      // Set overlay content based on type
+      overlayIcon.className =
+        iconClass || "fas fa-info-circle text-5xl text-blue-500 mb-3";
+      overlayTitle.textContent = title || "Processing...";
+      overlayMessage.textContent = message || "Please wait...";
+
+      // Show the overlay
+      videoOverlay.classList.remove("hidden");
+
+      // Show restart button for most cases
+      if (type !== "processing") {
+        restartBtn.classList.remove("hidden");
+      }
+    }
+
+    function cleanupResources() {
+      // Stop the camera
+      if (video.srcObject) {
+        const tracks = video.srcObject.getTracks();
+        tracks.forEach((track) => track.stop());
+        video.srcObject = null;
+      }
+
+      // Disconnect socket
+      if (socket && socket.connected) {
+        socket.disconnect();
+      }
+    }
+
+    // Event listeners
+    closeBtn.addEventListener("click", function () {
+      cleanupResources();
+      window.location.href = "{{ url_for('student_dashboard') }}";
+    });
+
+    restartBtn.addEventListener("click", function () {
+      location.reload();
+    });
+
+    // Start with step 1 active
+    updateStep(1);
+  });
+</script>
+{% endblock %}

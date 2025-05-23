@@ -1,0 +1,381 @@
+{% extends "base.html" %} {% block title %}Manage Sections{% endblock %} {%
+block content %}
+<h2 class="text-4xl font-bold text-center text-gray-800 mb-6">
+  Manage Sections
+</h2>
+
+<!-- Section List -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="text-xl font-semibold text-gray-800">Sections and Advisors</h3>
+    <button
+      id="addSectionBtn"
+      class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center"
+    >
+      <i class="fas fa-plus mr-2"></i> Add Section
+    </button>
+  </div>
+
+  {% if sections %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white">
+      <thead>
+        <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+          <th class="py-3 px-6 text-left">Section Name</th>
+          <th class="py-3 px-6 text-left">Advisor</th>
+          <th class="py-3 px-6 text-center">Students</th>
+          <th class="py-3 px-6 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-600 text-sm">
+        {% for section in sections %}
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="py-3 px-6 text-left">{{ section.name }}</td>
+          <td class="py-3 px-6 text-left">
+            {% if section.advisor %} {{ section.advisor.name }} ({{
+            section.advisor._id }}) {% else %}
+            <span class="text-red-500">No advisor assigned</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-6 text-center">{{ section.student_count }}</td>
+          <td class="py-3 px-6 text-center">
+            <div class="flex item-center justify-center">
+              {% if section.advisor %}
+              <button
+                onclick="changeAdvisor('{{ section.name }}', '{{ section.advisor._id }}', '{{ section.advisor.name }}')"
+                class="text-orange-500 hover:text-orange-700 mx-1"
+                title="Change Advisor"
+              >
+                <i class="fas fa-exchange-alt"></i>
+              </button>
+              {% else %}
+              <button
+                onclick="assignAdvisor('{{ section.name }}')"
+                class="text-blue-500 hover:text-blue-700 mx-1"
+                title="Assign Advisor"
+              >
+                <i class="fas fa-user-plus"></i>
+              </button>
+              {% endif %}
+              <a
+                href="{{ url_for('view_section_students', section=section.name) }}"
+                class="text-green-500 hover:text-green-700 mx-1"
+                title="View Students"
+              >
+                <i class="fas fa-users"></i>
+              </a>
+              <a
+                href="{{ url_for('section_attendance_report', section=section.name) }}"
+                class="text-purple-500 hover:text-purple-700 mx-1"
+                title="Attendance Report"
+              >
+                <i class="fas fa-chart-bar"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-gray-600">No sections have been created yet.</p>
+  {% endif %}
+</div>
+
+<!-- Available Advisors -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+  <h3 class="text-xl font-semibold text-gray-800 mb-4">
+    Available Teachers for Class Advisor Role
+  </h3>
+  {% if advisors %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white">
+      <thead>
+        <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+          <th class="py-3 px-6 text-left">ID</th>
+          <th class="py-3 px-6 text-left">Name</th>
+          <th class="py-3 px-6 text-center">Assigned Section</th>
+          <th class="py-3 px-6 text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-600 text-sm">
+        {% for advisor in advisors %}
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="py-3 px-6 text-left">{{ advisor._id }}</td>
+          <td class="py-3 px-6 text-left">{{ advisor.name }}</td>
+          <td class="py-3 px-6 text-center">
+            {% if advisor.section %} {{ advisor.section }} {% else %}
+            <span class="text-gray-400">None</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-6 text-center">
+            {% if not advisor.section %}
+            <button
+              onclick="selectAdvisor('{{ advisor._id }}', '{{ advisor.name }}')"
+              class="text-blue-500 hover:text-blue-700"
+            >
+              <i class="fas fa-user-plus mr-1"></i> Assign
+            </button>
+            {% else %}
+            <button
+              onclick="removeAssignment('{{ advisor._id }}')"
+              class="text-red-500 hover:text-red-700"
+            >
+              <i class="fas fa-user-minus mr-1"></i> Remove
+            </button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-gray-600">
+    No teachers available to assign as class advisors. Register users with the
+    teacher role first.
+  </p>
+  {% endif %}
+</div>
+
+<!-- Add Section Modal -->
+<div
+  id="addSectionModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50"
+>
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold text-gray-800">Add New Section</h3>
+      <button
+        onclick="closeModal('addSectionModal')"
+        class="text-gray-500 hover:text-gray-700"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form method="POST" action="{{ url_for('add_section') }}">
+      <div class="mb-4">
+        <label for="section_name" class="block text-gray-700 mb-2"
+          >Section Name:</label
+        >
+        <input
+          type="text"
+          id="section_name"
+          name="section_name"
+          required
+          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+      <div class="flex justify-end">
+        <button
+          type="button"
+          onclick="closeModal('addSectionModal')"
+          class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 mr-2"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+        >
+          Add Section
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Assign Advisor Modal -->
+<div
+  id="assignAdvisorModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50"
+>
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+    <div class="flex justify-between items-center mb-4">
+      <h3 id="modal_title" class="text-xl font-semibold text-gray-800">
+        Assign Teacher as Class Advisor
+      </h3>
+      <button
+        onclick="closeModal('assignAdvisorModal')"
+        class="text-gray-500 hover:text-gray-700"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form method="POST" action="{{ url_for('assign_advisor') }}">
+      <input type="hidden" id="section_id" name="section_id" />
+      <input
+        type="hidden"
+        id="change_advisor"
+        name="change_advisor"
+        value="false"
+      />
+
+      <div
+        id="current_advisor_info"
+        class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 hidden"
+      >
+        Current Advisor: None
+      </div>
+
+      <div class="mb-4">
+        <label for="advisor_id" class="block text-gray-700 mb-2"
+          >Select Teacher:</label
+        >
+        <select
+          id="advisor_id"
+          name="advisor_id"
+          required
+          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">-- Select a Teacher --</option>
+          {% for advisor in advisors %} {% if not advisor.section %}
+          <option value="{{ advisor._id }}" class="regular-option">
+            {{ advisor.name }} ({{ advisor._id }})
+          </option>
+          {% endif %} {% endfor %}
+
+          <!-- These options will only be shown when changing an advisor -->
+          {% for teacher in all_teachers %}
+          <option
+            value="{{ teacher._id }}"
+            class="change-option"
+            style="display: none"
+            {%
+            if
+            teacher.section
+            %}data-has-section="true"
+            data-section="{{ teacher.section }}"
+            {%
+            endif
+            %}
+          >
+            {{ teacher.name }} ({{ teacher._id }}){% if teacher.section %} -
+            Currently advisor for {{ teacher.section }}{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="flex justify-end">
+        <button
+          type="button"
+          onclick="closeModal('assignAdvisorModal')"
+          class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 mr-2"
+        >
+          Cancel
+        </button>
+        <button
+          id="submit_button"
+          type="submit"
+          class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+        >
+          Assign
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Show modal functions
+  document
+    .getElementById("addSectionBtn")
+    .addEventListener("click", function () {
+      document.getElementById("addSectionModal").classList.remove("hidden");
+    });
+
+  function assignAdvisor(sectionName) {
+    document.getElementById("section_id").value = sectionName;
+    document.getElementById("change_advisor").value = "false";
+    document.getElementById("modal_title").textContent =
+      "Assign Teacher as Class Advisor";
+    document.getElementById("submit_button").textContent = "Assign";
+
+    // Show only unassigned teachers
+    const options = document.querySelectorAll("#advisor_id option");
+    options.forEach((option) => {
+      if (option.value === "" || option.classList.contains("regular-option")) {
+        option.style.display = "block";
+      } else {
+        option.style.display = "none";
+      }
+    });
+
+    document.getElementById("assignAdvisorModal").classList.remove("hidden");
+  }
+
+  function changeAdvisor(sectionName, currentAdvisorId, currentAdvisorName) {
+    document.getElementById("section_id").value = sectionName;
+    document.getElementById("change_advisor").value = "true";
+    document.getElementById("modal_title").textContent = "Change Class Advisor";
+    document.getElementById("submit_button").textContent = "Change Advisor";
+    document.getElementById(
+      "current_advisor_info"
+    ).textContent = `Current Advisor: ${currentAdvisorName} (${currentAdvisorId})`;
+    document.getElementById("current_advisor_info").classList.remove("hidden");
+
+    // Show all teachers except the current advisor and those who are already advisors for other sections
+    const options = document.querySelectorAll("#advisor_id option");
+    options.forEach((option) => {
+      if (option.value === "") {
+        option.style.display = "block";
+      } else if (option.value === currentAdvisorId) {
+        option.style.display = "none";
+      } else if (
+        option.hasAttribute("data-has-section") &&
+        option.getAttribute("data-section") !== sectionName
+      ) {
+        option.style.display = "none";
+      } else {
+        option.style.display = "block";
+      }
+    });
+
+    document.getElementById("assignAdvisorModal").classList.remove("hidden");
+  }
+
+  function selectAdvisor(advisorId, advisorName) {
+    // This function would be used if we implement a different UI flow
+    // For now, we're using the modal approach
+  }
+
+  function removeAssignment(advisorId) {
+    if (
+      confirm(
+        "Are you sure you want to remove this advisor from their assigned section?"
+      )
+    ) {
+      window.location.href =
+        "{{ url_for('remove_advisor_assignment') }}?advisor_id=" + advisorId;
+    }
+  }
+
+  // Close modal function
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.add("hidden");
+
+    // Reset the form if it's the advisor modal
+    if (modalId === "assignAdvisorModal") {
+      document.getElementById("current_advisor_info").classList.add("hidden");
+      document.getElementById("change_advisor").value = "false";
+      document.getElementById("modal_title").textContent =
+        "Assign Teacher as Class Advisor";
+      document.getElementById("submit_button").textContent = "Assign";
+
+      // Reset all options display
+      const options = document.querySelectorAll("#advisor_id option");
+      options.forEach((option) => {
+        if (
+          option.value === "" ||
+          option.classList.contains("regular-option")
+        ) {
+          option.style.display = "block";
+        } else {
+          option.style.display = "none";
+        }
+      });
+    }
+  }
+</script>
+{% endblock %}

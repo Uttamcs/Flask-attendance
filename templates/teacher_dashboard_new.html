@@ -1,0 +1,254 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block page_title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Welcome Section -->
+    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white shadow-lg">
+        <h2 class="text-2xl font-bold mb-2">Welcome, {{ name }}</h2>
+        <p class="opacity-90">Manage your classes and track student attendance</p>
+        
+        {% if session.get('is_advisor') %}
+        <div class="mt-4 bg-white bg-opacity-20 rounded-lg p-3 backdrop-blur-sm">
+            <div class="flex items-center">
+                <i class="fas fa-user-tie mr-3 text-yellow-300"></i>
+                <div>
+                    <p class="font-semibold">You are assigned as a Class Advisor</p>
+                    <p class="text-sm">Section: {{ session.get('advisor_section') }}</p>
+                </div>
+            </div>
+            <a href="{{ url_for('advisor_dashboard') }}" class="mt-2 inline-block px-4 py-2 bg-white text-indigo-700 rounded-lg font-medium text-sm hover:bg-opacity-90 transition-all">
+                <i class="fas fa-arrow-right mr-1"></i> Go to Class Advisor Panel
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+            <div class="flex items-center">
+                <div class="rounded-full bg-blue-100 p-3 mr-4">
+                    <i class="fas fa-chalkboard-teacher text-blue-500 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 uppercase tracking-wider">My Classes</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_classes }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+            <div class="flex items-center">
+                <div class="rounded-full bg-green-100 p-3 mr-4">
+                    <i class="fas fa-calendar-alt text-green-500 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 uppercase tracking-wider">Scheduled Sessions</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_schedules }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+            <div class="flex items-center">
+                <div class="rounded-full bg-purple-100 p-3 mr-4">
+                    <i class="fas fa-user-graduate text-purple-500 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 uppercase tracking-wider">Total Students</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_students }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-bolt text-yellow-500 mr-2"></i> Quick Actions
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-{% if session.get('is_advisor') %}3{% else %}2{% endif %} gap-4">
+            <a href="{{ url_for('generate_class_qr') }}" class="flex items-center justify-center p-4 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-all">
+                <i class="fas fa-qrcode mr-2"></i> Generate QR Code
+            </a>
+            
+            <a href="{{ url_for('view_attendance_reports') }}" class="flex items-center justify-center p-4 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-all">
+                <i class="fas fa-clipboard-list mr-2"></i> View Attendance
+            </a>
+            
+            {% if session.get('is_advisor') %}
+            <a href="{{ url_for('schedule_class') }}" class="flex items-center justify-center p-4 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-all">
+                <i class="fas fa-calendar-plus mr-2"></i> Schedule Class
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- My Classes Section -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-chalkboard text-blue-500 mr-2"></i> My Classes
+            </h3>
+            <a href="{{ url_for('create_class') }}" class="text-sm text-indigo-600 hover:text-indigo-800">
+                <i class="fas fa-plus-circle"></i> Create New Class
+            </a>
+        </div>
+        
+        {% if classes %}
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class Name</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for class in classes %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ class.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ class.code }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ class.created_at }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <div class="flex justify-center space-x-2">
+                                <a href="{{ url_for('schedule_class', class_code=class.code) }}" class="text-blue-500 hover:text-blue-700" title="Schedule Class">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </a>
+                                <a href="{{ url_for('generate_class_qr', class_code=class.code) }}" class="text-green-500 hover:text-green-700" title="Generate QR Code">
+                                    <i class="fas fa-qrcode"></i>
+                                </a>
+                                <a href="{{ url_for('view_attendance_reports') }}" class="text-purple-500 hover:text-purple-700" title="View Attendance">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <i class="fas fa-chalkboard text-gray-400 text-4xl mb-3"></i>
+            <p class="text-gray-600">You haven't created any classes yet.</p>
+            <a href="{{ url_for('create_class') }}" class="mt-3 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition-all">
+                Create Your First Class
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Upcoming Classes -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-calendar-day text-green-500 mr-2"></i> Upcoming Classes
+        </h3>
+        
+        {% if schedules %}
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for sched in schedules %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ sched.class_name }} <span class="text-xs text-gray-500">({{ sched.class_code }})</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sched.start_time }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sched.end_time }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                            {% if sched.assigned_teacher_id == session.user_id %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Assigned Teacher
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Creator
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <a href="{{ url_for('generate_class_qr', class_code=sched.class_code) }}" class="text-indigo-600 hover:text-indigo-900" title="Generate QR Code">
+                                <i class="fas fa-qrcode"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <i class="fas fa-calendar-times text-gray-400 text-4xl mb-3"></i>
+            <p class="text-gray-600">No upcoming classes scheduled.</p>
+            <a href="{{ url_for('schedule_class') }}" class="mt-3 inline-block px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-all">
+                Schedule a Class
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Attendance -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-clipboard-check text-purple-500 mr-2"></i> Recent Attendance
+            </h3>
+            <a href="{{ url_for('view_attendance_reports') }}" class="text-sm text-indigo-600 hover:text-indigo-800">
+                View All Reports <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+        
+        {% if recent_attendance %}
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for record in recent_attendance %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ record.student_name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ record.class_name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ record.session_name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ record.date }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {{ record.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <i class="fas fa-clipboard text-gray-400 text-4xl mb-3"></i>
+            <p class="text-gray-600">No recent attendance records.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

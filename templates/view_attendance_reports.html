@@ -1,130 +1,270 @@
-{% extends "base.html" %}
+{% extends "base_sidebar.html" %}
 {% block title %}Attendance Reports{% endblock %}
+{% block page_title %}Attendance Reports{% endblock %}
 {% block content %}
-    <h2 class="text-4xl font-bold text-center text-gray-800 mb-6">Attendance Reports</h2>
+<div class="space-y-6">
+  <!-- Header Section -->
+  <div class="bg-gradient-to-r from-green-500 to-teal-600 rounded-lg p-6 text-white shadow-lg">
+    <h2 class="text-2xl font-bold mb-2">Attendance Reports</h2>
+    <p class="opacity-90">View and analyze attendance data across students, classes, and sections</p>
+  </div>
 
-    <!-- Report Selection Form -->
-    <form method="POST" class="mt-4 max-w-md mx-auto bg-white p-6 rounded-lg shadow">
-        <div class="mb-4">
-            <label for="report_type" class="block text-gray-700 font-semibold">Report Type:</label>
-            <select id="report_type" name="report_type" class="border rounded-lg p-2 w-full" onchange="toggleReportId()">
-                <option value="By Student" {% if report_type == "By Student" %}selected{% endif %}>By Student</option>
-                <option value="By Class" {% if report_type == "By Class" %}selected{% endif %}>By Class</option>
-                <option value="By Section" {% if report_type == "By Section" %}selected{% endif %}>By Section</option>
-            </select>
+  <!-- Report Selection Form -->
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="flex items-center mb-4">
+      <div class="rounded-full bg-teal-100 p-3 mr-4">
+        <i class="fas fa-filter text-teal-500 text-xl"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800">Generate Report</h3>
+        <p class="text-gray-600">Select the type of report you want to view</p>
+      </div>
+    </div>
+
+    <form method="POST" class="mt-4 max-w-md mx-auto">
+      <div class="mb-4">
+        <label for="report_type" class="block text-sm font-medium text-gray-700 mb-1">Report Type:</label>
+        <div class="relative">
+          <select id="report_type" name="report_type"
+            class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            onchange="toggleReportId()">
+            <option value="By Student" {% if report_type == "By Student" %}selected{% endif %}>By Student</option>
+            <option value="By Class" {% if report_type == "By Class" %}selected{% endif %}>By Class</option>
+            <option value="By Section" {% if report_type == "By Section" %}selected{% endif %}>By Section</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <i class="fas fa-chevron-down text-xs"></i>
+          </div>
         </div>
-        <div id="report_id_field" class="mb-4">
-            <label for="report_id" class="block text-gray-700 font-semibold">ID:</label>
-            <!-- Text input for Student ID -->
-            <input type="text" id="report_id" name="report_id" class="border rounded-lg p-2 w-full" 
-                   placeholder="Enter Student ID" {% if report_type != "By Student" %}class="hidden"{% endif %}>
-            <!-- Dropdown for Class or Section -->
-            <select id="report_id_select" name="report_id" class="border rounded-lg p-2 w-full" 
-                    {% if report_type == "By Student" or not report_type %}class="hidden"{% endif %}>
-                <option value="">-- Select --</option>
-                {% if report_type == "By Class" %}
-                    {% for class in classes %}
-                        <option value="{{ class.code }}">{{ class.name }} ({{ class.code }})</option>
-                    {% endfor %}
-                {% elif report_type == "By Section" %}
-                    {% for section in sections %}
-                        <option value="{{ section }}">{{ section }}</option>
-                    {% endfor %}
-                {% endif %}
-            </select>
+      </div>
+
+      <div id="report_id_field" class="mb-4">
+        <label for="report_id" class="block text-sm font-medium text-gray-700 mb-1">
+          {% if report_type == "By Student" %}
+            Student ID:
+          {% elif report_type == "By Class" %}
+            Class:
+          {% elif report_type == "By Section" %}
+            Section:
+          {% else %}
+            ID:
+          {% endif %}
+        </label>
+
+        <!-- Text input for Student ID -->
+        <div class="relative" id="student_id_container">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="fas fa-user text-gray-400"></i>
+          </div>
+          <input type="text" id="report_id" name="report_id"
+            class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            placeholder="Enter Student ID">
         </div>
-        <button type="submit" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 w-full">Generate Report</button>
+
+        <!-- Dropdown for Class or Section -->
+        <div class="relative" id="dropdown_container">
+          <select id="report_id_select" name="report_id"
+            class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+            <!-- Options will be populated dynamically by JavaScript -->
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <i class="fas fa-chevron-down text-xs"></i>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit"
+        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+        <i class="fas fa-chart-bar mr-2"></i> Generate Report
+      </button>
     </form>
+  </div>
 
-    <!-- Report Results -->
-    {% if report_type %}
-        <h3 class="text-2xl font-semibold mt-6 text-gray-800">{{ report_type }} Report</h3>
-        {% if report_data %}
-            {% if report_type == "By Class" %}
-                <!-- Class Summary Table -->
-                <table class="w-full bg-white rounded-lg shadow mt-4">
-                    <thead>
-                        <tr class="bg-gray-200 text-gray-700">
-                            <th class="p-2 text-left">Class</th>
-                            <th class="p-2 text-left">Present</th>
-                            <th class="p-2 text-left">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for class, stats in report_data.items() %}
-                            <tr class="border-b">
-                                <td class="p-2">{{ class }}</td>
-                                <td class="p-2">{{ stats.present }}</td>
-                                <td class="p-2">{{ stats.total }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <!-- Student or Section Detailed Table -->
-                <table class="w-full bg-white rounded-lg shadow mt-4">
-                    <thead>
-                        <tr class="bg-gray-200 text-gray-700">
-                            <th class="p-2 text-left">Student ID</th>
-                            <th class="p-2 text-left">Class</th>
-                            <th class="p-2 text-left">Date</th>
-                            <th class="p-2 text-left">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in report_data %}
-                            <tr class="border-b">
-                                <td class="p-2">{{ record.student_id }}</td>
-                                <td class="p-2">{{ record.class_name }} ({{ record.class_code }})</td>
-                                <td class="p-2">{{ record.date }}</td>
-                                <td class="p-2">{{ record.status }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% endif %}
-        {% else %}
-            <p class="mt-4 text-gray-600">No data available for this report.</p>
-        {% endif %}
+  <!-- Report Results -->
+  {% if report_type %}
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="flex items-center mb-4">
+      <div class="rounded-full bg-indigo-100 p-3 mr-4">
+        <i class="fas fa-chart-bar text-indigo-500 text-xl"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800">{{ report_type }} Report</h3>
+        <p class="text-gray-600">
+          {% if report_type == "By Student" %}
+            Attendance records for individual student
+          {% elif report_type == "By Class" %}
+            Attendance summary for class
+          {% elif report_type == "By Section" %}
+            Attendance records for section
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    {% if report_data %}
+      {% if report_type == "By Class" %}
+        <!-- Class Summary Table -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white">
+            <thead>
+              <tr class="bg-gray-100 border-b">
+                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                <th class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Present</th>
+                <th class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                <th class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Attendance Rate</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              {% for class, stats in report_data.items() %}
+                {% set percentage = (stats.present / stats.total * 100) if stats.total > 0 else 0 %}
+                {% set status_color = 'bg-red-50' if percentage < 75 else ('bg-yellow-50' if percentage < 90 else 'bg-green-50') %}
+                <tr class="hover:bg-gray-50 {{ status_color }}">
+                  <td class="py-4 px-6 text-sm font-medium text-gray-900">{{ class }}</td>
+                  <td class="py-4 px-6 text-sm text-gray-500 text-center">{{ stats.present }}</td>
+                  <td class="py-4 px-6 text-sm text-gray-500 text-center">{{ stats.total }}</td>
+                  <td class="py-4 px-6 text-sm text-center">
+                    <div class="flex items-center justify-center">
+                      <div class="w-full bg-gray-200 rounded-full h-2.5 mr-2 max-w-[100px]">
+                        {% set color = 'bg-red-600' if percentage < 75 else ('bg-yellow-500' if percentage < 90 else 'bg-green-600') %}
+                        <div class="{{ color }} h-2.5 rounded-full" style="width: {{ percentage }}%"></div>
+                      </div>
+                      <span class="text-sm font-medium">{{ "%.1f"|format(percentage) }}%</span>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <!-- Student or Section Detailed Table -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white">
+            <thead>
+              <tr class="bg-gray-100 border-b">
+                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
+                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              {% for record in report_data %}
+                <tr class="hover:bg-gray-50 {% if record.status == 'Present' %}bg-green-50{% else %}bg-red-50{% endif %}">
+                  <td class="py-4 px-6 text-sm font-medium text-gray-900">{{ record.student_id }}</td>
+                  <td class="py-4 px-6 text-sm text-gray-900">
+                    {% if record.class_name %}
+                      {{ record.class_name }}
+                    {% else %}
+                      Unknown Class
+                    {% endif %}
+                    <span class="text-xs text-gray-500">({{ record.class_code }})</span>
+                  </td>
+                  <td class="py-4 px-6 text-sm text-gray-500">{{ record.date }}</td>
+                  <td class="py-4 px-6 text-sm text-center">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if record.status == 'Present' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                      {{ record.status }}
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="bg-gray-50 rounded-lg p-6 text-center">
+        <i class="fas fa-search text-gray-400 text-4xl mb-3"></i>
+        <p class="text-gray-600">No data available for this report.</p>
+        <p class="text-sm text-gray-500 mt-1">Try selecting a different report type or ID.</p>
+      </div>
     {% endif %}
+  </div>
+  {% endif %}
 
-    <!-- Back Button -->
-    <a href="{{ url_for('admin_dashboard') }}" 
-       class="block mt-6 bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 text-center w-full max-w-md mx-auto">
-        Back to Dashboard
+  <!-- Back Button -->
+  <div class="flex justify-center mt-6">
+    <a href="{{ url_for('admin_dashboard' if session.role == 'admin' else 'teacher_dashboard') }}"
+       class="inline-flex items-center px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all">
+      <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
     </a>
+  </div>
+</div>
 
-    <!-- JavaScript for Dynamic Form -->
-    <script>
-        function toggleReportId() {
-            const reportType = document.getElementById('report_type').value;
-            const reportIdInput = document.getElementById('report_id');
-            const reportIdSelect = document.getElementById('report_id_select');
+<!-- JavaScript for Dynamic Form -->
+<script>
+  // Store the dropdown options in JavaScript variables
+  const classOptions = [
+    {% for class in classes %}
+      {code: "{{ class.code }}", name: "{{ class.name }}"},
+    {% endfor %}
+  ];
 
-            if (reportType === 'By Student') {
-                reportIdInput.classList.remove('hidden');
-                reportIdSelect.classList.add('hidden');
-                reportIdInput.placeholder = "Enter Student ID";
-            } else if (reportType === 'By Class') {
-                reportIdInput.classList.add('hidden');
-                reportIdSelect.classList.remove('hidden');
-                reportIdSelect.innerHTML = '<option value="">-- Select Class --</option>' + 
-                    {% for class in classes %}
-                        '<option value="{{ class.code }}">{{ class.name }} ({{ class.code }})</option>' +
-                    {% endfor %}
-                    '';
-            } else if (reportType === 'By Section') {
-                reportIdInput.classList.add('hidden');
-                reportIdSelect.classList.remove('hidden');
-                reportIdSelect.innerHTML = '<option value="">-- Select Section --</option>' + 
-                    {% for section in sections %}
-                        '<option value="{{ section }}">{{ section }}</option>' +
-                    {% endfor %}
-                    '';
-            }
-        }
+  const sectionOptions = [
+    {% for section in sections %}
+      "{{ section }}",
+    {% endfor %}
+  ];
 
-        // Run on page load to set initial state
-        toggleReportId();
-    </script>
+  function toggleReportId() {
+    const reportType = document.getElementById('report_type').value;
+    const reportIdInput = document.getElementById('report_id');
+    const reportIdSelect = document.getElementById('report_id_select');
+    const studentIdContainer = document.getElementById('student_id_container');
+    const dropdownContainer = document.getElementById('dropdown_container');
+
+    // Update the label text based on the report type
+    const labelElement = document.querySelector('#report_id_field label');
+    if (labelElement) {
+      if (reportType === 'By Student') {
+        labelElement.textContent = 'Student ID:';
+      } else if (reportType === 'By Class') {
+        labelElement.textContent = 'Class:';
+      } else if (reportType === 'By Section') {
+        labelElement.textContent = 'Section:';
+      }
+    }
+
+    if (reportType === 'By Student') {
+      // Show student ID input, hide dropdown
+      studentIdContainer.style.display = 'block';
+      dropdownContainer.style.display = 'none';
+      reportIdInput.placeholder = "Enter Student ID";
+
+      // Clear any previous value
+      reportIdInput.value = '';
+    } else if (reportType === 'By Class') {
+      // Hide student ID input, show dropdown
+      studentIdContainer.style.display = 'none';
+      dropdownContainer.style.display = 'block';
+
+      // Build the class options dynamically
+      let classOptionsHTML = '<option value="">-- Select Class --</option>';
+      classOptions.forEach(classItem => {
+        classOptionsHTML += `<option value="${classItem.code}">${classItem.name} (${classItem.code})</option>`;
+      });
+      reportIdSelect.innerHTML = classOptionsHTML;
+    } else if (reportType === 'By Section') {
+      // Hide student ID input, show dropdown
+      studentIdContainer.style.display = 'none';
+      dropdownContainer.style.display = 'block';
+
+      // Build the section options dynamically
+      let sectionOptionsHTML = '<option value="">-- Select Section --</option>';
+      sectionOptions.forEach(section => {
+        sectionOptionsHTML += `<option value="${section}">${section}</option>`;
+      });
+      reportIdSelect.innerHTML = sectionOptionsHTML;
+    }
+  }
+
+  // Run on page load to set initial state
+  document.addEventListener('DOMContentLoaded', function() {
+    // Make sure the function runs immediately to set the correct state
+    toggleReportId();
+
+    // Also attach the event listener to the dropdown to ensure it updates when changed
+    document.getElementById('report_type').addEventListener('change', toggleReportId);
+  });
+</script>
 {% endblock %}

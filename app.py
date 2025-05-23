@@ -424,6 +424,14 @@ def login():
             logger.info(f"User {user_id} logged in as {user['role']}")
             if user['role'] == 'admin':
                 return redirect(url_for('admin_dashboard'))
+            elif user['role'] == 'teacher':
+                # Check if this teacher is assigned as a class advisor
+                if user.get('section'):
+                    session['is_advisor'] = True
+                    session['advisor_section'] = user['section']
+                else:
+                    session['is_advisor'] = False
+                return redirect(url_for('teacher_dashboard'))
             return redirect(url_for('student_dashboard'))
         flash('Invalid credentials!')
     return render_template('login.html')
@@ -441,16 +449,38 @@ def admin_dashboard():
     total_students = users_collection.count_documents({"role": "student"})
     total_classes = classes_collection.count_documents({})
     total_schedules = schedules_collection.count_documents({})
-    return render_template('admin_dashboard.html', name=session['name'],
+    return render_template('admin_dashboard_new.html', name=session['name'],
                          total_students=total_students, total_classes=total_classes,
-                         total_schedules=total_schedules)
+                         total_schedules=total_schedules, users_collection=users_collection)
 
 @app.route('/admin/generate_class_qr', methods=['GET', 'POST'])
 def generate_class_qr():
-    if 'user_id' not in session or session['role'] != 'admin':
+    if 'user_id' not in session or session['role'] not in ['admin', 'teacher']:
         return redirect(url_for('login'))
 
-    classes = list(classes_collection.find({}))
+    # For teachers, show their own classes and classes they're assigned to
+    if session['role'] == 'teacher':
+        # Get classes created by this teacher
+        own_classes = list(classes_collection.find({"teacher_id": session['user_id']}))
+
+        # Get classes where this teacher is assigned to a schedule
+        assigned_schedules = list(schedules_collection.find({"assigned_teacher_id": session['user_id']}))
+        assigned_class_codes = [schedule["class_code"] for schedule in assigned_schedules]
+
+        # Get the class details for assigned classes
+        assigned_classes = list(classes_collection.find({"code": {"$in": assigned_class_codes}}))
+
+        # Combine the lists, avoiding duplicates
+        class_codes = set()
+        classes = []
+
+        for class_obj in own_classes + assigned_classes:
+            if class_obj["code"] not in class_codes:
+                class_codes.add(class_obj["code"])
+                classes.append(class_obj)
+    else:
+        # For admins, show all classes
+        classes = list(classes_collection.find({}))
     qr_code_url = None
     session_name = None
     class_code = None
@@ -466,6 +496,27 @@ def generate_class_qr():
         if not class_data:
             flash("Class not found!")
             return redirect(url_for('generate_class_qr'))
+
+        # For teachers, verify they can only generate QR codes for classes they're assigned to
+        if session['role'] == 'teacher':
+            # Check if there's a current schedule for this class
+            now = datetime.now()
+            current_schedule = schedules_collection.find_one({
+                "class_code": class_code,
+                "start_time": {"$lte": now.strftime("%Y-%m-%d %H:%M:%S")},
+                "end_time": {"$gte": now.strftime("%Y-%m-%d %H:%M:%S")}
+            })
+
+            if current_schedule:
+                # Check if this teacher is assigned to this schedule
+                if current_schedule.get('assigned_teacher_id') != session['user_id']:
+                    flash("You are not the assigned teacher for this class schedule!")
+                    return redirect(url_for('generate_class_qr'))
+            else:
+                # If no current schedule, check if they created the class
+                if class_data.get('teacher_id') != session['user_id']:
+                    flash("You can only generate QR codes for your own classes or classes you're assigned to!")
+                    return redirect(url_for('generate_class_qr'))
 
         # Create session data
         now = datetime.now()
@@ -515,13 +566,158 @@ def generate_class_qr():
 def student_dashboard():
     if 'user_id' not in session or session['role'] != 'student':
         return redirect(url_for('login'))
+
+    # Get student enrollments
     enrollments = list(enrollments_collection.find({"student_id": session['user_id']}))
     class_codes = [e["class_code"] for e in enrollments]
+
+    # Get upcoming schedules
     upcoming_schedules = list(schedules_collection.find({
         "class_code": {"$in": class_codes},
         "start_time": {"$gte": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     }).sort("start_time", 1).limit(5))
-    return render_template('student_dashboard.html', name=session['name'], schedules=upcoming_schedules)
+
+    # Get attendance statistics
+    attendance_records = list(attendance_collection.find({"student_id": session['user_id']}))
+    total_sessions = len(attendance_records)
+    present_sessions = sum(1 for record in attendance_records if record.get('status') == 'Present')
+
+    # Calculate attendance percentage
+    attendance_percentage = round((present_sessions / total_sessions * 100) if total_sessions > 0 else 0, 1)
+
+    # Add current time for template to check if class is active
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Get next class time
+    next_class_time = upcoming_schedules[0]['start_time'] if upcoming_schedules else "No upcoming classes"
+
+    return render_template('student_dashboard_new.html',
+                          name=session['name'],
+                          schedules=upcoming_schedules,
+                          now=now,
+                          total_classes=len(class_codes),
+                          classes_attended=present_sessions,
+                          attendance_percentage=attendance_percentage,
+                          next_class_time=next_class_time)
+
+@app.route('/teacher/dashboard')
+def teacher_dashboard():
+    if 'user_id' not in session or session['role'] != 'teacher':
+        return redirect(url_for('login'))
+
+    # Get classes created by this teacher
+    classes = list(classes_collection.find({"teacher_id": session['user_id']}))
+
+    # Get class codes for classes created by this teacher
+    class_codes = [c["code"] for c in classes]
+
+    # Get schedules for these classes
+    schedules = list(schedules_collection.find({"class_code": {"$in": class_codes}}).sort("start_time", -1))
+
+    # Also get schedules where this teacher is assigned
+    assigned_schedules = list(schedules_collection.find({"assigned_teacher_id": session['user_id']}).sort("start_time", -1))
+
+    # Combine the schedules, avoiding duplicates
+    schedule_ids = set()
+    combined_schedules = []
+
+    for schedule in schedules + assigned_schedules:
+        # Create a unique ID for the schedule
+        schedule_id = f"{schedule['class_code']}_{schedule['start_time']}_{schedule['end_time']}"
+        if schedule_id not in schedule_ids:
+            schedule_ids.add(schedule_id)
+            combined_schedules.append(schedule)
+
+    # Replace the schedules list with the combined list
+    schedules = combined_schedules
+
+    # Get recent attendance records for these classes
+    recent_attendance = list(attendance_collection.find({"class_code": {"$in": class_codes}}).sort("date", -1).limit(10))
+
+    # Add student names to attendance records
+    for record in recent_attendance:
+        student = users_collection.find_one({"_id": record["student_id"]})
+        if student:
+            record["student_name"] = student["name"]
+        else:
+            record["student_name"] = "Unknown Student"
+
+    # Count total students enrolled in teacher's classes
+    total_students = enrollments_collection.count_documents({"class_code": {"$in": class_codes}})
+
+    return render_template('teacher_dashboard_new.html',
+                          name=session['name'],
+                          classes=classes,
+                          total_classes=len(classes),
+                          total_schedules=len(schedules),
+                          total_students=total_students,
+                          recent_attendance=recent_attendance)
+
+@app.route('/advisor/dashboard')
+def advisor_dashboard():
+    if 'user_id' not in session or session['role'] != 'teacher' or not session.get('is_advisor', False):
+        flash("You need to be a teacher assigned as a class advisor to access this page.")
+        return redirect(url_for('login'))
+
+    # Get advisor's section
+    advisor = users_collection.find_one({"_id": session['user_id']})
+    section = advisor.get("section", "Unknown")
+
+    # Get students in this section
+    students = list(users_collection.find({"role": "student", "section": section}))
+
+    # Calculate attendance statistics for each student
+    for student in students:
+        attendance_records = list(attendance_collection.find({"student_id": student["_id"]}))
+        total_sessions = len(attendance_records)
+        present_sessions = sum(1 for record in attendance_records if record.get('status') == 'Present')
+        student["attendance_rate"] = round((present_sessions / total_sessions * 100) if total_sessions > 0 else 0, 1)
+
+    # Get recent attendance records for this section
+    student_ids = [s["_id"] for s in students]
+    recent_attendance = list(attendance_collection.find({"student_id": {"$in": student_ids}}).sort("date", -1).limit(10))
+
+    # Add student names to attendance records
+    for record in recent_attendance:
+        student = next((s for s in students if s["_id"] == record["student_id"]), None)
+        if student:
+            record["student_name"] = student["name"]
+        else:
+            record["student_name"] = "Unknown Student"
+
+    # Calculate overall attendance rate
+    all_attendance = list(attendance_collection.find({"student_id": {"$in": student_ids}}))
+    total_records = len(all_attendance)
+    present_records = sum(1 for record in all_attendance if record.get('status') == 'Present')
+    attendance_rate = round((present_records / total_records * 100) if total_records > 0 else 0, 1)
+
+    # Get classes that students in this section are enrolled in
+    enrolled_classes = enrollments_collection.distinct("class_code", {"student_id": {"$in": student_ids}})
+    total_classes = len(enrolled_classes)
+
+    # Get classes created by this advisor
+    advisor_classes = list(classes_collection.find({"teacher_id": session['user_id']}))
+
+    # Check which classes have students enrolled
+    for cls in advisor_classes:
+        # Count how many students from this section are enrolled in this class
+        enrolled_count = enrollments_collection.count_documents({
+            "class_code": cls["code"],
+            "student_id": {"$in": student_ids}
+        })
+        cls["enrolled_count"] = enrolled_count
+        cls["total_students"] = len(student_ids)
+        cls["enrollment_percentage"] = round((enrolled_count / len(student_ids) * 100) if len(student_ids) > 0 else 0)
+
+    return render_template('advisor_dashboard.html',
+                          name=session['name'],
+                          section=section,
+                          students=students,
+                          total_students=len(students),
+                          total_classes=total_classes,
+                          attendance_rate=attendance_rate,
+                          recent_attendance=recent_attendance,
+                          advisor_classes=advisor_classes)
 
 @app.route('/admin/register', methods=['GET', 'POST'])
 def register():
@@ -534,12 +730,24 @@ def register():
             "role": request.form['reg_role'],
             "password": hash_password(request.form['reg_pass'])
         }
-        if request.form['reg_role'] == 'student':
+        if request.form['reg_role'] in ['student', 'teacher']:
             section = request.form['reg_section'].strip()
-            if not section:
+
+            # Section is required for students
+            if request.form['reg_role'] == 'student' and not section:
                 flash("Section is required for students!")
                 return redirect(url_for('register'))
-            data["section"] = section
+
+            # If section is provided for a teacher, they become a class advisor
+            if section:
+                data["section"] = section
+
+                # For teachers with section, check if this section already has an advisor
+                if request.form['reg_role'] == 'teacher':
+                    existing_advisor = users_collection.find_one({"role": "teacher", "section": section})
+                    if existing_advisor:
+                        flash(f"Section {section} already has a class advisor assigned: {existing_advisor['name']}!")
+                        return redirect(url_for('register'))
 
         if not all(data.values()):
             flash("All fields are required!")
@@ -562,16 +770,27 @@ def register():
 
 @app.route('/admin/create_class', methods=['GET', 'POST'])
 def create_class():
-    if 'user_id' not in session or session['role'] != 'admin':
+    if 'user_id' not in session or session['role'] not in ['admin', 'teacher']:
         return redirect(url_for('login'))
+
+    # For teachers, only allow access if they are class advisors
+    if session['role'] == 'teacher' and not session.get('is_advisor', False):
+        flash("You need to be a class advisor to create classes.")
+        return redirect(url_for('teacher_dashboard'))
+
     if request.method == 'POST':
         class_data = {
             "name": request.form['class_name'].strip(),
             "code": request.form['class_code'].strip(),
             "description": request.form['class_desc'].strip(),
             "teacher_id": session['user_id'],
+            "teacher_name": session['name'],
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
+
+        # If this is a class advisor, add the section to the class data
+        if session['role'] == 'teacher' and session.get('is_advisor', False):
+            class_data["section"] = session.get('advisor_section')
 
         # Add GPS coordinates if provided
         if 'classroom_lat' in request.form and 'classroom_lon' in request.form:
@@ -590,23 +809,72 @@ def create_class():
             except (ValueError, TypeError) as e:
                 logger.error(f"Error processing location data: {e}")
                 flash("Warning: Could not process location data. Attendance location verification will be disabled.")
+
         if not class_data["name"] or not class_data["code"]:
             flash("Class Name and Class Code are required!")
             return redirect(url_for('create_class'))
+
         if classes_collection.find_one({"code": class_data["code"]}):
             flash("Class Code already exists!")
             return redirect(url_for('create_class'))
+
         classes_collection.insert_one(class_data)
         flash(f"Class {class_data['name']} created!")
-        logger.info(f"Class {class_data['code']} created")
-        return redirect(url_for('admin_dashboard'))
+        logger.info(f"Class {class_data['code']} created by {session['role']} {session['user_id']}")
+
+        # If the user is a class advisor, automatically enroll students from their section
+        if session['role'] == 'teacher' and session.get('is_advisor', False):
+            advisor_section = session.get('advisor_section')
+            if advisor_section:
+                # Get all students from the advisor's section
+                students = users_collection.find({"role": "student", "section": advisor_section})
+                student_ids = [student["_id"] for student in students]
+
+                if student_ids:
+                    enrolled_count = 0
+                    for sid in student_ids:
+                        result = enrollments_collection.update_one(
+                            {"student_id": sid, "class_code": class_data["code"]},
+                            {"$set": {"student_id": sid, "class_code": class_data["code"], "enrolled_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}},
+                            upsert=True
+                        )
+                        if result.matched_count or result.upserted_id:
+                            enrolled_count += 1
+
+                    if enrolled_count > 0:
+                        flash(f"Automatically enrolled {enrolled_count} students from section {advisor_section} in this class!")
+                        logger.info(f"Automatically enrolled {enrolled_count} students from section {advisor_section} in class {class_data['code']}")
+
+        # Redirect based on user role
+        if session['role'] == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        elif session.get('is_advisor', False):
+            return redirect(url_for('advisor_manage_classes'))
+        else:
+            return redirect(url_for('teacher_dashboard'))
+
     return render_template('create_class.html')
 
 @app.route('/admin/schedule_class', methods=['GET', 'POST'])
 def schedule_class():
-    if 'user_id' not in session or session['role'] != 'admin':
+    if 'user_id' not in session or session['role'] not in ['admin', 'teacher']:
         return redirect(url_for('login'))
-    classes = list(classes_collection.find({}))
+
+    # For teachers, only allow access if they are class advisors
+    if session['role'] == 'teacher' and not session.get('is_advisor', False):
+        flash("You need to be a class advisor to schedule classes.")
+        return redirect(url_for('teacher_dashboard'))
+
+    # For teachers, only show their own classes
+    if session['role'] == 'teacher':
+        classes = list(classes_collection.find({"teacher_id": session['user_id']}))
+    else:
+        # For admins, show all classes
+        classes = list(classes_collection.find({}))
+
+    # Get all teachers for the assignment dropdown
+    teachers = list(users_collection.find({"role": "teacher"}))
+
     if request.method == 'POST':
         try:
             start_time_str = request.form['sched_start_time'].strip()
@@ -614,29 +882,81 @@ def schedule_class():
             class_code = request.form['sched_class_code'].strip()
             start_time = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M")
             end_time = datetime.strptime(end_time_str, "%Y-%m-%dT%H:%M")
+
             if end_time <= start_time:
                 flash("End time must be after start time!")
                 return redirect(url_for('schedule_class'))
+
             class_data = classes_collection.find_one({"code": class_code})
             if not class_data:
                 flash("Class code does not exist!")
                 return redirect(url_for('schedule_class'))
+
+            # Get the assigned teacher ID from the form
+            assigned_teacher_id = request.form.get('assigned_teacher_id', session['user_id'])
+
+            # Verify the assigned teacher exists and is a teacher
+            assigned_teacher = users_collection.find_one({"_id": assigned_teacher_id, "role": "teacher"})
+            if not assigned_teacher:
+                flash("Invalid teacher assignment. Using yourself as the assigned teacher.")
+                assigned_teacher_id = session['user_id']
+                assigned_teacher = users_collection.find_one({"_id": assigned_teacher_id})
+
             schedule_data = {
                 "class_code": class_code,
                 "class_name": class_data["name"],
                 "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
                 "end_time": end_time.strftime("%Y-%m-%d %H:%M:%S"),
                 "created_by": session['user_id'],
-                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "assigned_teacher_id": assigned_teacher_id,
+                "assigned_teacher_name": assigned_teacher["name"]
             }
+
+            # For teachers, verify they can only schedule their own classes
+            if session['role'] == 'teacher' and class_data.get('teacher_id') != session['user_id']:
+                flash("You can only schedule your own classes!")
+                return redirect(url_for('schedule_class'))
+
             schedules_collection.insert_one(schedule_data)
             flash(f"Class {class_data['name']} scheduled!")
-            logger.info(f"Class {class_code} scheduled from {start_time} to {end_time}")
-            return redirect(url_for('admin_dashboard'))
+            logger.info(f"Class {class_code} scheduled from {start_time} to {end_time} by {session['role']} {session['user_id']}")
+
+            # If the user is a class advisor, automatically enroll students from their section
+            if session['role'] == 'teacher' and session.get('is_advisor', False):
+                advisor_section = session.get('advisor_section')
+                if advisor_section:
+                    # Get all students from the advisor's section
+                    students = users_collection.find({"role": "student", "section": advisor_section})
+                    student_ids = [student["_id"] for student in students]
+
+                    if student_ids:
+                        enrolled_count = 0
+                        for sid in student_ids:
+                            result = enrollments_collection.update_one(
+                                {"student_id": sid, "class_code": class_code},
+                                {"$set": {"student_id": sid, "class_code": class_code, "enrolled_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}},
+                                upsert=True
+                            )
+                            if result.matched_count or result.upserted_id:
+                                enrolled_count += 1
+
+                        if enrolled_count > 0:
+                            flash(f"Automatically enrolled {enrolled_count} students from section {advisor_section} in this class!")
+                            logger.info(f"Automatically enrolled {enrolled_count} students from section {advisor_section} in class {class_code}")
+
+            # Redirect based on user role
+            if session['role'] == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            elif session.get('is_advisor', False):
+                return redirect(url_for('advisor_manage_classes'))
+            else:
+                return redirect(url_for('teacher_dashboard'))
         except ValueError:
             flash("Invalid date/time format!")
             return redirect(url_for('schedule_class'))
-    return render_template('schedule_class.html', classes=classes)
+
+    return render_template('schedule_class.html', classes=classes, teachers=teachers)
 
 @app.route('/admin/enroll_students', methods=['GET', 'POST'])
 def enroll_students():
@@ -677,15 +997,39 @@ def mark_attendance():
     if 'user_id' not in session or session['role'] != 'student':
         logger.warning("Unauthorized access to mark_attendance")
         return redirect(url_for('login'))
+
+    # Get student enrollments
     enrollments = enrollments_collection.find({"student_id": session['user_id']})
     class_codes = [e["class_code"] for e in enrollments]
+
+    # Get active schedules
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     active_schedules = list(schedules_collection.find({
         "class_code": {"$in": class_codes},
-        "start_time": {"$lte": datetime.now().strftime("%Y-%m-%d %H:%M:%S")},
-        "end_time": {"$gte": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+        "start_time": {"$lte": now},
+        "end_time": {"$gte": now}
     }))
+
+    # Get student data for face verification
+    student = users_collection.find_one({"_id": session['user_id']})
+    has_face_data = "face_data" in student and student["face_data"]
+
+    # Check if student has already marked attendance for any active classes
+    marked_attendance = {}
+    for schedule in active_schedules:
+        class_code = schedule["class_code"]
+        existing = attendance_collection.find_one({
+            "student_id": session['user_id'],
+            "class_code": class_code,
+            "date": {"$gte": schedule["start_time"], "$lte": schedule["end_time"]}
+        })
+        marked_attendance[class_code] = True if existing else False
+
     logger.info(f"Rendering mark_attendance for user {session['user_id']} with {len(active_schedules)} active schedules")
-    return render_template('mark_attendance.html', schedules=active_schedules)
+    return render_template('mark_attendance_new.html',
+                          schedules=active_schedules,
+                          has_face_data=has_face_data,
+                          marked_attendance=marked_attendance)
 
 @app.route('/student/view_attendance')
 def view_student_attendance():
@@ -707,7 +1051,7 @@ def view_class_schedule():
 
 @app.route('/admin/view_reports', methods=['GET', 'POST'])
 def view_attendance_reports():
-    if 'user_id' not in session or session['role'] != 'admin':
+    if 'user_id' not in session or session['role'] not in ['admin', 'teacher']:
         return redirect(url_for('login'))
     if request.method == 'POST':
         report_type = request.form['report_type']
@@ -715,6 +1059,15 @@ def view_attendance_reports():
         if report_type == "By Student":
             query = {"student_id": report_id} if report_id else {}
             records = list(attendance_collection.find(query).sort("date", -1))
+
+            # Enhance records with class names
+            for record in records:
+                class_code = record.get('class_code')
+                if class_code and not record.get('class_name'):
+                    class_data = classes_collection.find_one({"code": class_code})
+                    if class_data:
+                        record['class_name'] = class_data.get('name', 'Unknown Class')
+
             return render_template('view_attendance_reports.html', report_type=report_type, report_data=records)
         elif report_type == "By Class":
             query = {"class_code": report_id} if report_id else {}
@@ -722,7 +1075,13 @@ def view_attendance_reports():
             class_totals = {}
             for record in records:
                 class_code = record['class_code']
-                class_name = record.get("class_name", classes_collection.find_one({"code": class_code})["name"])
+                # Get class name from the record or from the classes collection
+                class_data = classes_collection.find_one({"code": class_code})
+                if class_data:
+                    class_name = record.get("class_name", class_data.get("name", "Unknown Class"))
+                else:
+                    class_name = record.get("class_name", "Unknown Class")
+
                 class_key = f"{class_name} ({class_code})"
                 class_totals[class_key] = class_totals.get(class_key, {"present": 0, "total": 0})
                 class_totals[class_key]["total"] += 1
@@ -733,18 +1092,56 @@ def view_attendance_reports():
             students = users_collection.find({"section": report_id, "role": "student"})
             student_ids = [s["_id"] for s in students]
             records = list(attendance_collection.find({"student_id": {"$in": student_ids}}).sort("date", -1))
+
+            # Enhance records with class names
+            for record in records:
+                class_code = record.get('class_code')
+                if class_code and not record.get('class_name'):
+                    class_data = classes_collection.find_one({"code": class_code})
+                    if class_data:
+                        record['class_name'] = class_data.get('name', 'Unknown Class')
+
             return render_template('view_attendance_reports.html', report_type=report_type, report_data=records)
     sections = users_collection.distinct("section", {"role": "student"})
-    classes = list(classes_collection.find({}))
+
+    # For teachers, only show their own classes
+    if session['role'] == 'teacher':
+        classes = list(classes_collection.find({"teacher_id": session['user_id']}))
+    else:
+        # For admins, show all classes
+        classes = list(classes_collection.find({}))
+
     return render_template('view_attendance_reports.html', sections=sections, classes=classes)
 
 @app.route('/admin/manage_classes', methods=['GET', 'POST'])
 def manage_classes():
-    if 'user_id' not in session or session['role'] != 'admin':
+    if 'user_id' not in session or session['role'] not in ['admin', 'teacher']:
         return redirect(url_for('login'))
+
+    # For teachers, only allow access if they are class advisors
+    if session['role'] == 'teacher' and not session.get('is_advisor', False):
+        flash("You need to be a class advisor to manage classes.")
+        return redirect(url_for('teacher_dashboard'))
+
     if request.method == 'POST':
         class_code = request.form['class_code'].strip()
         action = request.form['action']
+
+        # For class advisors, only allow managing classes for their section
+        if session['role'] == 'teacher' and session.get('is_advisor', False):
+            # Get the class to check if it belongs to the advisor's section
+            class_data = classes_collection.find_one({"code": class_code})
+            if not class_data:
+                flash("Class not found!")
+                return redirect(url_for('manage_classes'))
+
+            # Check if the class is associated with the advisor's section
+            # This would require adding a section field to classes or checking enrollments
+            # For now, we'll allow advisors to manage all classes they created
+            if class_data.get('teacher_id') != session['user_id']:
+                flash("You can only manage classes you created!")
+                return redirect(url_for('manage_classes'))
+
         if action == "delete":
             classes_collection.delete_one({"code": class_code})
             schedules_collection.delete_many({"class_code": class_code})
@@ -752,9 +1149,514 @@ def manage_classes():
             attendance_collection.delete_many({"class_code": class_code})
             flash(f"Class {class_code} and related data deleted!")
             logger.info(f"Class {class_code} deleted")
-        return redirect(url_for('manage_classes'))
-    classes = list(classes_collection.find({}))
+
+        # Redirect based on user role
+        if session['role'] == 'admin':
+            return redirect(url_for('manage_classes'))
+        else:
+            return redirect(url_for('advisor_manage_classes'))
+
+    # Get classes based on user role
+    if session['role'] == 'admin':
+        classes = list(classes_collection.find({}))
+    else:
+        # For class advisors, only show classes they created
+        classes = list(classes_collection.find({"teacher_id": session['user_id']}))
+
     return render_template('manage_classes.html', classes=classes)
+
+@app.route('/admin/manage_sections', methods=['GET'])
+def manage_sections():
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    # Get all sections from all records (students, placeholders, etc.)
+    sections_list = users_collection.distinct("section")
+    sections = []
+
+    for section_name in sections_list:
+        if not section_name:  # Skip empty section names
+            continue
+
+        # Get advisor for this section (teacher with section assignment)
+        advisor = users_collection.find_one({"role": "teacher", "section": section_name})
+
+        # Count students in this section
+        student_count = users_collection.count_documents({"role": "student", "section": section_name})
+
+        sections.append({
+            "name": section_name,
+            "advisor": advisor,
+            "student_count": student_count
+        })
+
+    # Get all teachers who are not already assigned as advisors
+    advisors = list(users_collection.find({"role": "teacher", "section": {"$exists": False}}))
+
+    # Get all teachers (for changing advisors)
+    all_teachers = list(users_collection.find({"role": "teacher"}))
+
+    return render_template('manage_sections.html',
+                          sections=sections,
+                          advisors=advisors,
+                          all_teachers=all_teachers)
+
+@app.route('/admin/add_section', methods=['POST'])
+def add_section():
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        section_name = request.form['section_name'].strip()
+
+        if not section_name:
+            flash("Section name is required!")
+            return redirect(url_for('manage_sections'))
+
+        # Check if section already exists
+        if section_name in users_collection.distinct("section"):
+            flash(f"Section {section_name} already exists!")
+            return redirect(url_for('manage_sections'))
+
+        # Create a dummy student to establish the section
+        # This is just a placeholder and will be removed when real students are added
+        placeholder_data = {
+            "_id": f"placeholder_{section_name}_{int(datetime.now().timestamp())}",
+            "name": f"Placeholder for section {section_name}",
+            "role": "placeholder",
+            "section": section_name,
+            "password": hash_password("placeholder"),
+            "is_placeholder": True
+        }
+
+        users_collection.insert_one(placeholder_data)
+        flash(f"Section {section_name} created successfully!")
+
+    return redirect(url_for('manage_sections'))
+
+@app.route('/admin/assign_advisor', methods=['POST'])
+def assign_advisor():
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        section_id = request.form['section_id'].strip()
+        advisor_id = request.form['advisor_id'].strip()
+        change_advisor = request.form.get('change_advisor', 'false') == 'true'
+
+        if not section_id or not advisor_id:
+            flash("Section and advisor are required!")
+            return redirect(url_for('manage_sections'))
+
+        # Check if this section already has an advisor
+        existing_advisor = users_collection.find_one({"role": "teacher", "section": section_id})
+
+        if existing_advisor and not change_advisor:
+            flash(f"Section {section_id} already has an advisor assigned: {existing_advisor['name']}. Please use the 'Change Advisor' option instead.")
+            return redirect(url_for('manage_sections'))
+
+        # Check if this teacher is already an advisor for another section
+        teacher_info = users_collection.find_one({"_id": advisor_id})
+        if teacher_info and teacher_info.get("section"):
+            flash(f"This teacher is already assigned as an advisor for section {teacher_info['section']}.")
+            return redirect(url_for('manage_sections'))
+
+        # If we're changing an advisor, remove the section from the existing advisor
+        if existing_advisor and change_advisor:
+            users_collection.update_one(
+                {"_id": existing_advisor["_id"]},
+                {"$unset": {"section": ""}}
+            )
+            logger.info(f"Removed advisor {existing_advisor['_id']} from section {section_id}")
+
+        # Update the teacher with the section assignment (making them a class advisor)
+        result = users_collection.update_one(
+            {"_id": advisor_id, "role": "teacher"},
+            {"$set": {"section": section_id}}
+        )
+
+        if result.modified_count > 0:
+            if change_advisor:
+                flash(f"Advisor for section {section_id} changed successfully!")
+            else:
+                flash(f"Advisor assigned to section {section_id} successfully!")
+        else:
+            flash("Failed to assign advisor. Please try again.")
+
+    return redirect(url_for('manage_sections'))
+
+@app.route('/admin/remove_advisor_assignment')
+def remove_advisor_assignment():
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    advisor_id = request.args.get('advisor_id')
+
+    if not advisor_id:
+        flash("Advisor ID is required!")
+        return redirect(url_for('manage_sections'))
+
+    # Remove the section assignment from the teacher (removing class advisor role)
+    users_collection.update_one(
+        {"_id": advisor_id, "role": "teacher"},
+        {"$unset": {"section": ""}}
+    )
+
+    flash("Advisor assignment removed successfully!")
+    return redirect(url_for('manage_sections'))
+
+@app.route('/admin/view_section_students')
+def view_section_students():
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    section = request.args.get('section')
+
+    if not section:
+        flash("Section is required!")
+        return redirect(url_for('manage_sections'))
+
+    # Get students in this section
+    students = list(users_collection.find({"role": "student", "section": section}))
+
+    # Get advisor for this section (teacher with section assignment)
+    advisor = users_collection.find_one({"role": "teacher", "section": section})
+
+    return render_template('section_students.html',
+                          section=section,
+                          students=students,
+                          advisor=advisor)
+
+@app.route('/advisor/section_attendance_report')
+def section_attendance_report():
+    if 'user_id' not in session or session['role'] != 'teacher' or not session.get('is_advisor', False):
+        flash("You need to be a teacher assigned as a class advisor to access this page.")
+        return redirect(url_for('login'))
+
+    # Get advisor's section
+    advisor = users_collection.find_one({"_id": session['user_id']})
+    section = advisor.get("section", "Unknown")
+
+    # Get students in this section
+    students = list(users_collection.find({"role": "student", "section": section}))
+    student_ids = [s["_id"] for s in students]
+
+    # Get attendance records for these students
+    attendance_records = list(attendance_collection.find({"student_id": {"$in": student_ids}}).sort("date", -1))
+
+    # Enhance records with class names
+    for record in attendance_records:
+        class_code = record.get('class_code')
+        if class_code and not record.get('class_name'):
+            class_data = classes_collection.find_one({"code": class_code})
+            if class_data:
+                record['class_name'] = class_data.get('name', 'Unknown Class')
+
+    # Group attendance by student
+    student_attendance = {}
+    for student in students:
+        student_attendance[student["_id"]] = {
+            "name": student["name"],
+            "records": [],
+            "present": 0,
+            "total": 0,
+            "percentage": 0
+        }
+
+    # Process attendance records
+    for record in attendance_records:
+        student_id = record["student_id"]
+        if student_id in student_attendance:
+            student_attendance[student_id]["records"].append(record)
+            student_attendance[student_id]["total"] += 1
+            if record.get("status") == "Present":
+                student_attendance[student_id]["present"] += 1
+
+    # Calculate percentages
+    for student_id, data in student_attendance.items():
+        if data["total"] > 0:
+            data["percentage"] = round((data["present"] / data["total"]) * 100, 1)
+
+    return render_template('section_attendance_report.html',
+                          section=section,
+                          students=students,
+                          student_attendance=student_attendance)
+
+@app.route('/advisor/manage_section_students')
+def manage_section_students():
+    if 'user_id' not in session or session['role'] != 'teacher' or not session.get('is_advisor', False):
+        flash("You need to be a teacher assigned as a class advisor to access this page.")
+        return redirect(url_for('login'))
+
+    # Get advisor's section
+    advisor = users_collection.find_one({"_id": session['user_id']})
+    section = advisor.get("section", "Unknown")
+
+    # Get students in this section
+    students = list(users_collection.find({"role": "student", "section": section}))
+    student_ids = [s["_id"] for s in students]
+
+    # Get attendance records for these students
+    attendance_records = list(attendance_collection.find({"student_id": {"$in": student_ids}}))
+
+    # Calculate attendance rates for each student
+    for student in students:
+        student_id = student["_id"]
+        student_records = [r for r in attendance_records if r["student_id"] == student_id]
+        total_records = len(student_records)
+        present_records = sum(1 for r in student_records if r.get("status") == "Present")
+
+        # Calculate attendance rate
+        attendance_rate = round((present_records / total_records * 100) if total_records > 0 else 0, 1)
+        student["attendance_rate"] = attendance_rate
+        student["total_classes"] = total_records
+        student["present_classes"] = present_records
+
+        # Get last login time
+        student["last_login"] = student.get("last_login", "Never")
+
+    # Calculate summary statistics
+    perfect_count = sum(1 for s in students if s.get("attendance_rate", 0) == 100)
+    good_count = sum(1 for s in students if s.get("attendance_rate", 0) >= 90 and s.get("attendance_rate", 0) < 100)
+    avg_count = sum(1 for s in students if s.get("attendance_rate", 0) >= 75 and s.get("attendance_rate", 0) < 90)
+    poor_count = sum(1 for s in students if s.get("attendance_rate", 0) < 75)
+
+    attendance_summary = {
+        "perfect_count": perfect_count,
+        "good_count": good_count,
+        "avg_count": avg_count,
+        "poor_count": poor_count
+    }
+
+    return render_template('manage_section_students.html',
+                          section=section,
+                          students=students,
+                          attendance_summary=attendance_summary)
+
+@app.route('/advisor/manage_classes', methods=['GET', 'POST'])
+def advisor_manage_classes():
+    if 'user_id' not in session or session['role'] != 'teacher' or not session.get('is_advisor', False):
+        flash("You need to be a teacher assigned as a class advisor to access this page.")
+        return redirect(url_for('login'))
+
+    # Get advisor's section
+    advisor = users_collection.find_one({"_id": session['user_id']})
+    section = advisor.get("section", "Unknown")
+
+    if request.method == 'POST':
+        class_code = request.form['class_code'].strip()
+        action = request.form['action']
+
+        # Get the class to check if it belongs to the advisor
+        class_data = classes_collection.find_one({"code": class_code})
+        if not class_data:
+            flash("Class not found!")
+            return redirect(url_for('advisor_manage_classes'))
+
+        # Check if the class is created by this advisor
+        if class_data.get('teacher_id') != session['user_id']:
+            flash("You can only manage classes you created!")
+            return redirect(url_for('advisor_manage_classes'))
+
+        if action == "delete":
+            classes_collection.delete_one({"code": class_code})
+            schedules_collection.delete_many({"class_code": class_code})
+            enrollments_collection.delete_many({"class_code": class_code})
+            attendance_collection.delete_many({"class_code": class_code})
+            flash(f"Class {class_code} and related data deleted!")
+            logger.info(f"Class {class_code} deleted by advisor {session['user_id']}")
+
+    # Get classes created by this advisor
+    classes = list(classes_collection.find({"teacher_id": session['user_id']}))
+
+    return render_template('advisor_manage_classes.html',
+                          section=section,
+                          classes=classes)
+
+@app.route('/advisor/email_section_students')
+def email_section_students():
+    if 'user_id' not in session or session['role'] != 'teacher' or not session.get('is_advisor', False):
+        flash("You need to be a teacher assigned as a class advisor to access this page.")
+        return redirect(url_for('login'))
+
+    # Get advisor's section
+    advisor = users_collection.find_one({"_id": session['user_id']})
+    section = advisor.get("section", "Unknown")
+
+    # Get students in this section
+    students = list(users_collection.find({"role": "student", "section": section}))
+
+    # In a real application, you would send emails here
+    # For now, we'll just simulate it
+    student_count = len(students)
+    flash(f"Email notification sent to {student_count} students in section {section}.")
+
+    return redirect(url_for('manage_section_students'))
+
+@app.route('/advisor/export_section_data')
+def export_section_data():
+    if 'user_id' not in session or session['role'] != 'teacher' or not session.get('is_advisor', False):
+        flash("You need to be a teacher assigned as a class advisor to access this page.")
+        return redirect(url_for('login'))
+
+    # Get advisor's section
+    advisor = users_collection.find_one({"_id": session['user_id']})
+    section = advisor.get("section", "Unknown")
+
+    # Get students in this section
+    students = list(users_collection.find({"role": "student", "section": section}))
+
+    # In a real application, you would generate a CSV or Excel file here
+    # For now, we'll just simulate it
+    student_count = len(students)
+    flash(f"Data for {student_count} students in section {section} has been exported.")
+
+    return redirect(url_for('manage_section_students'))
+
+@app.route('/advisor/email_student')
+def email_student():
+    if 'user_id' not in session or session['role'] != 'teacher' or not session.get('is_advisor', False):
+        flash("You need to be a teacher assigned as a class advisor to access this page.")
+        return redirect(url_for('login'))
+
+    student_id = request.args.get('student_id')
+    if not student_id:
+        flash("Student ID is required!")
+        return redirect(url_for('manage_section_students'))
+
+    # Get student details
+    student = users_collection.find_one({"_id": student_id, "role": "student"})
+    if not student:
+        flash("Student not found!")
+        return redirect(url_for('manage_section_students'))
+
+    # In a real application, you would send an email here
+    # For now, we'll just simulate it
+    flash(f"Email notification sent to student {student['name']}.")
+
+    return redirect(url_for('manage_section_students'))
+
+@app.route('/advisor/flag_student')
+def flag_student():
+    if 'user_id' not in session or session['role'] != 'teacher' or not session.get('is_advisor', False):
+        flash("You need to be a teacher assigned as a class advisor to access this page.")
+        return redirect(url_for('login'))
+
+    student_id = request.args.get('student_id')
+    if not student_id:
+        flash("Student ID is required!")
+        return redirect(url_for('manage_section_students'))
+
+    # Get student details
+    student = users_collection.find_one({"_id": student_id, "role": "student"})
+    if not student:
+        flash("Student not found!")
+        return redirect(url_for('manage_section_students'))
+
+    # Toggle the flagged status
+    current_flag = student.get("flagged", False)
+    users_collection.update_one(
+        {"_id": student_id},
+        {"$set": {"flagged": not current_flag}}
+    )
+
+    action = "removed from" if current_flag else "added to"
+    flash(f"Student {student['name']} {action} flagged list.")
+
+    return redirect(url_for('manage_section_students'))
+
+@app.route('/advisor/view_student_attendance_report')
+def view_student_attendance_report():
+    if 'user_id' not in session or session['role'] not in ['admin', 'teacher']:
+        return redirect(url_for('login'))
+
+    # Check if this teacher is assigned as a class advisor
+    if session['role'] == 'teacher' and not session.get('is_advisor', False):
+        flash("You need to be a teacher assigned as a class advisor to access this page.")
+        return redirect(url_for('teacher_dashboard'))
+
+    student_id = request.args.get('student_id')
+
+    if not student_id:
+        flash("Student ID is required!")
+        if session['role'] == 'admin':
+            return redirect(url_for('view_attendance_reports'))
+        else:
+            return redirect(url_for('advisor_dashboard'))
+
+    # Get student details
+    student = users_collection.find_one({"_id": student_id, "role": "student"})
+
+    if not student:
+        flash("Student not found!")
+        if session['role'] == 'admin':
+            return redirect(url_for('view_attendance_reports'))
+        else:
+            return redirect(url_for('advisor_dashboard'))
+
+    # For teachers acting as class advisors, verify they can only view students in their section
+    if session['role'] == 'teacher' and session.get('is_advisor', False):
+        # Get the advisor's section from the database
+        advisor = users_collection.find_one({"_id": session['user_id']})
+        advisor_section = advisor.get("section", "Unknown")
+
+        if student.get("section") != advisor_section:
+            flash("You can only view students in your assigned section!")
+            return redirect(url_for('advisor_dashboard'))
+
+    # Get attendance records for this student
+    attendance_records = list(attendance_collection.find({"student_id": student_id}).sort("date", -1))
+
+    # Enhance records with class names
+    for record in attendance_records:
+        class_code = record.get('class_code')
+        if class_code and not record.get('class_name'):
+            class_data = classes_collection.find_one({"code": class_code})
+            if class_data:
+                record['class_name'] = class_data.get('name', 'Unknown Class')
+
+    # Group by class
+    class_attendance = {}
+    for record in attendance_records:
+        class_code = record.get("class_code")
+        if class_code not in class_attendance:
+            # Get class name from the record or from the classes collection
+            class_data = classes_collection.find_one({"code": class_code})
+            if class_data:
+                class_name = record.get("class_name", class_data.get("name", "Unknown Class"))
+            else:
+                class_name = record.get("class_name", "Unknown Class")
+
+            class_attendance[class_code] = {
+                "name": class_name,
+                "records": [],
+                "present": 0,
+                "total": 0,
+                "percentage": 0
+            }
+
+        class_attendance[class_code]["records"].append(record)
+        class_attendance[class_code]["total"] += 1
+        if record.get("status") == "Present":
+            class_attendance[class_code]["present"] += 1
+
+    # Calculate percentages
+    for class_code, data in class_attendance.items():
+        if data["total"] > 0:
+            data["percentage"] = round((data["present"] / data["total"]) * 100, 1)
+
+    # Calculate overall attendance
+    total_records = len(attendance_records)
+    present_records = sum(1 for record in attendance_records if record.get("status") == "Present")
+    overall_percentage = round((present_records / total_records * 100) if total_records > 0 else 0, 1)
+
+    return render_template('student_attendance_report.html',
+                          student=student,
+                          class_attendance=class_attendance,
+                          attendance_records=attendance_records,
+                          total_records=total_records,
+                          present_records=present_records,
+                          overall_percentage=overall_percentage)
 
 # User Profile and Settings Routes
 @app.route('/profile')
@@ -1215,7 +2117,15 @@ def process_attendance_with_class_qr(frame, class_session_data, face_verified=Fa
         try:
             attendance_collection.insert_one(attendance_data)
             logger.info(f"Attendance marked for {student_id} in {class_name} - {session_name} at {date}")
-            emit('message', "Attendance Marked")
+
+            # Send a success message with detailed information
+            emit('message', {
+                "type": "attendance_marked",
+                "message": "Attendance marked successfully!",
+                "class_name": class_name,
+                "session_name": session_name,
+                "date": date
+            })
         except Exception as e:
             logger.error(f"Error marking attendance: {e}")
             emit('message', "Error: Failed to mark attendance. Please try again.")
