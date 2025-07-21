@@ -65,7 +65,7 @@ try:
     mongo_uri = os.environ.get('MONGO_URI')
 
     # Extract database name from URI if present
-    db_name = os.environ.get('MONGO_DB_NAME', 'syntra_attendance')
+    db_name = os.environ.get('MONGO_DB_NAME', 'Syntra')
 
     # Handle Railway's MongoDB connection string format
     if '?retryWrites=' in mongo_uri and not db_name in mongo_uri:
@@ -2427,30 +2427,8 @@ if not users_collection.find_one({"role": "admin"}):
     })
     logger.info("Created default admin user (admin1/admin123)")
 
-if __name__ == "__main__":
-    # Get host and port from environment variables
-    host = os.environ.get('HOST', '0.0.0.0')
-    port = int(os.environ.get('PORT', 5000))
     
-    # Try to run on the specified port, if it fails, try alternative ports
-    max_port_attempts = 10
-    for port_attempt in range(max_port_attempts):
-        try:
-            if port_attempt > 0:
-                port = port + port_attempt
-                
-            # Print a custom message showing the localhost URL
-            print(f"\n* Flask application running at: http://localhost:{port}")
-            print(f"* To access the application, open your browser and navigate to: http://localhost:{port}\n")
-            
-            # Run the app with environment-based configuration
-            socketio.run(app, debug=False, host=host, port=port, log_output=False, server='eventlet')
-
-            break
-        except OSError as e:
-            if "address already in use" in str(e).lower() and port_attempt < max_port_attempts - 1:
-                print(f"Port {port} is already in use, trying port {port + 1}...")
-                continue
-            else:
-                print(f"Error starting server: {e}")
-                raise
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host="0.0.0.0", port=port, debug=False, server='eventlet')
