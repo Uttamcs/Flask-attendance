@@ -136,7 +136,7 @@
 <div class="space-y-6">
   <!-- Header Section -->
   <div
-    class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white shadow-lg"
+    class="bg-gradient-to-r from-indigo-900 to-purple-900 rounded-xl p-6 text-white shadow-lg glass-card border border-slate-700/30"
   >
     <h2 class="text-2xl font-bold mb-2">Mark Attendance</h2>
     <p class="opacity-90">
@@ -148,93 +148,93 @@
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
     <div
       id="step1"
-      class="verification-step active border border-gray-200 rounded-lg p-4 bg-white"
+      class="verification-step active border border-slate-700 rounded-lg p-4 bg-slate-800 text-slate-100"
     >
       <div class="flex items-center mb-3">
         <div id="step1-indicator" class="status-indicator active mr-3">
           <i class="fas fa-qrcode"></i>
         </div>
-        <h3 class="font-medium text-gray-900">Step 1: Scan QR Code</h3>
+        <h3 class="font-medium text-slate-100">Step 1: Scan QR Code</h3>
       </div>
-      <p class="text-sm text-gray-600">
+      <p class="text-sm text-slate-300">
         Scan the QR code displayed by your teacher to begin the attendance
         verification process.
       </p>
-      <div id="step1-status" class="mt-3 text-sm text-indigo-600">
+      <div id="step1-status" class="mt-3 text-sm text-indigo-400">
         <i class="fas fa-spinner fa-spin mr-1"></i> Waiting for QR code...
       </div>
     </div>
 
     <div
       id="step2"
-      class="verification-step border border-gray-200 rounded-lg p-4 bg-white"
+      class="verification-step border border-slate-700 rounded-lg p-4 bg-slate-800 text-slate-100"
     >
       <div class="flex items-center mb-3">
         <div id="step2-indicator" class="status-indicator pending mr-3">
           <i class="fas fa-user"></i>
         </div>
-        <h3 class="font-medium text-gray-900">Step 2: Face Verification</h3>
+        <h3 class="font-medium text-slate-100">Step 2: Face Verification</h3>
       </div>
-      <p class="text-sm text-gray-600">
+      <p class="text-sm text-slate-300">
         Look at the camera to verify your identity through facial recognition.
       </p>
-      <div id="step2-status" class="mt-3 text-sm text-gray-500">
+      <div id="step2-status" class="mt-3 text-sm text-slate-400">
         Waiting for QR code scan...
       </div>
     </div>
 
     <div
       id="step3"
-      class="verification-step border border-gray-200 rounded-lg p-4 bg-white"
+      class="verification-step border border-slate-700 rounded-lg p-4 bg-slate-800 text-slate-100"
     >
       <div class="flex items-center mb-3">
         <div id="step3-indicator" class="status-indicator pending mr-3">
           <i class="fas fa-map-marker-alt"></i>
         </div>
-        <h3 class="font-medium text-gray-900">Step 3: Location Verification</h3>
+        <h3 class="font-medium text-slate-100">Step 3: Location Verification</h3>
       </div>
-      <p class="text-sm text-gray-600">
+      <p class="text-sm text-slate-300">
         Your location will be verified to ensure you're in the classroom (within
         20 meters).
       </p>
-      <div id="step3-status" class="mt-3 text-sm text-gray-500">
+      <div id="step3-status" class="mt-3 text-sm text-slate-400">
         Waiting for face verification...
       </div>
     </div>
 
     <div
       id="step4"
-      class="verification-step border border-gray-200 rounded-lg p-4 bg-white"
+      class="verification-step border border-slate-700 rounded-lg p-4 bg-slate-800 text-slate-100"
     >
       <div class="flex items-center mb-3">
         <div id="step4-indicator" class="status-indicator pending mr-3">
           <i class="fas fa-check-double"></i>
         </div>
-        <h3 class="font-medium text-gray-900">Step 4: Mark Attendance</h3>
+        <h3 class="font-medium text-slate-100">Step 4: Mark Attendance</h3>
       </div>
-      <p class="text-sm text-gray-600">
+      <p class="text-sm text-slate-300">
         After all verifications are complete, your attendance will be recorded
         in the system.
       </p>
-      <div id="step4-status" class="mt-3 text-sm text-gray-500">
+      <div id="step4-status" class="mt-3 text-sm text-slate-400">
         Waiting for location verification...
       </div>
     </div>
   </div>
 
   <!-- Camera Feed -->
-  <div class="bg-white rounded-lg shadow-md p-6">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-      <i class="fas fa-camera text-indigo-500 mr-2"></i> Camera Feed
+  <div class="bg-slate-800 rounded-xl shadow-md p-6 glass-card border border-slate-700/30">
+    <h3 class="text-lg font-semibold text-slate-100 mb-4 flex items-center">
+      <i class="fas fa-camera text-indigo-400 mr-2"></i> Camera Feed
     </h3>
 
-    <div id="video-container" class="border-2 border-gray-200 rounded-lg">
+    <div id="video-container" class="border-2 border-slate-700 rounded-lg">
       <video id="video" width="100%" height="auto" autoplay playsinline></video>
 
       <div id="video-overlay" class="hidden">
         <i
           id="overlay-icon"
-          class="fas fa-spinner fa-spin text-5xl text-blue-500 mb-3"
+          class="fas fa-spinner fa-spin text-5xl text-blue-400 mb-3"
         ></i>
         <h3 id="overlay-title" class="text-xl font-bold">Processing...</h3>
         <p id="overlay-message" class="text-sm opacity-80 mt-2">
@@ -242,7 +242,7 @@
         </p>
         <button
           id="close-btn"
-          class="mt-4 px-4 py-2 bg-white text-indigo-700 rounded-lg font-medium text-sm hover:bg-opacity-90 transition-all"
+          class="mt-4 px-4 py-2 btn-gradient text-white rounded-lg font-medium text-sm shadow-md hover:scale-105 transition-all"
         >
           Close Camera
         </button>
@@ -256,13 +256,13 @@
     </div>
 
     <div class="mt-4 flex justify-between items-center">
-      <div id="status-message" class="text-sm text-gray-600">
+      <div id="status-message" class="text-sm text-slate-300">
         Please allow camera access to begin.
       </div>
 
       <button
         id="restart-btn"
-        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-all hidden"
+        class="px-4 py-2 bg-slate-700 text-slate-200 rounded-lg text-sm hover:bg-slate-600 transition-all hidden"
       >
         <i class="fas fa-redo mr-1"></i> Restart
       </button>
@@ -270,40 +270,40 @@
   </div>
 
   <!-- Active Classes -->
-  <div class="bg-white rounded-lg shadow-md p-6">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-      <i class="fas fa-calendar-check text-green-500 mr-2"></i> Active Classes
+  <div class="bg-slate-800 rounded-xl shadow-md p-6 glass-card border border-slate-700/30">
+    <h3 class="text-lg font-semibold text-slate-100 mb-4 flex items-center">
+      <i class="fas fa-calendar-check text-green-400 mr-2"></i> Active Classes
     </h3>
 
     {% if schedules %}
     <div class="space-y-4">
       {% for schedule in schedules %}
       <div
-        class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-all"
+        class="border border-slate-700 rounded-lg p-4 hover:bg-slate-700 transition-all"
       >
         <div
           class="flex flex-col md:flex-row md:items-center md:justify-between"
         >
           <div>
-            <h4 class="font-medium text-gray-900">{{ schedule.class_name }}</h4>
-            <p class="text-sm text-gray-500">Code: {{ schedule.class_code }}</p>
+            <h4 class="font-medium text-slate-100">{{ schedule.class_name }}</h4>
+            <p class="text-sm text-slate-400">Code: {{ schedule.class_code }}</p>
           </div>
           <div class="mt-2 md:mt-0">
-            <div class="flex items-center text-sm text-gray-600">
-              <i class="fas fa-clock mr-2 text-indigo-500"></i>
+            <div class="flex items-center text-sm text-slate-300">
+              <i class="fas fa-clock mr-2 text-indigo-400"></i>
               <span>{{ schedule.start_time }} - {{ schedule.end_time }}</span>
             </div>
           </div>
           <div class="mt-3 md:mt-0">
             {% if marked_attendance.get(schedule.class_code, False) %}
             <span
-              class="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 text-sm rounded-lg"
+              class="inline-flex items-center px-3 py-1.5 bg-green-900/30 text-green-300 text-sm rounded-lg"
             >
               <i class="fas fa-check-circle mr-1"></i> Attendance Marked
             </span>
             {% else %}
             <button
-              class="scan-qr-btn inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-all"
+              class="scan-qr-btn inline-flex items-center px-3 py-1.5 btn-gradient text-white text-sm rounded-lg shadow-md hover:scale-105 transition-all"
             >
               <i class="fas fa-qrcode mr-1"></i> Scan QR Code
             </button>
@@ -315,13 +315,13 @@
     </div>
     {% else %}
     <div
-      class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300"
+      class="text-center py-8 bg-slate-800 rounded-lg border border-dashed border-slate-700"
     >
-      <i class="fas fa-calendar-times text-gray-400 text-4xl mb-3"></i>
-      <p class="text-gray-600">No active classes at the moment.</p>
+      <i class="fas fa-calendar-times text-slate-400 text-4xl mb-3"></i>
+      <p class="text-slate-300">No active classes at the moment.</p>
       <a
         href="{{ url_for('view_class_schedule') }}"
-        class="mt-3 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition-all"
+        class="mt-3 inline-block px-4 py-2 btn-gradient text-white rounded-lg text-sm shadow-md hover:scale-105 transition-all"
       >
         View Class Schedule
       </a>
@@ -330,14 +330,14 @@
   </div>
 
   <!-- Instructions -->
-  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+  <div class="bg-blue-900/30 border-l-4 border-blue-700 p-4 rounded-md text-slate-100">
     <div class="flex">
       <div class="flex-shrink-0">
-        <i class="fas fa-info-circle text-blue-500"></i>
+        <i class="fas fa-info-circle text-blue-400"></i>
       </div>
       <div class="ml-3">
-        <h3 class="text-sm font-medium text-blue-800">Instructions</h3>
-        <div class="mt-2 text-sm text-blue-700">
+        <h3 class="text-sm font-medium text-blue-200">Instructions</h3>
+        <div class="mt-2 text-sm text-blue-100">
           <ul class="list-disc pl-5 space-y-1">
             <li>Make sure you are in a well-lit area</li>
             <li>Look directly at the camera during face verification</li>
@@ -348,7 +348,7 @@
         </div>
 
         {% if not has_face_data %}
-        <div class="mt-3 p-2 bg-red-100 text-red-800 rounded">
+        <div class="mt-3 p-2 bg-red-900/30 text-red-200 rounded">
           <i class="fas fa-exclamation-triangle mr-1"></i>
           <strong>Warning:</strong> You don't have face data registered. Please
           contact your administrator.

@@ -33,6 +33,7 @@
         background-image: 
           radial-gradient(circle at 25% 25%, rgba(79, 70, 229, 0.15) 0%, transparent 50%),
           radial-gradient(circle at 75% 75%, rgba(124, 58, 237, 0.15) 0%, transparent 50%);
+        min-height: 100vh;
       }
 
       .card-shadow {
@@ -50,16 +51,22 @@
       .btn-gradient {
         background: linear-gradient(to right, #4f46e5, #7c3aed);
         transition: all 0.3s ease;
+        color: #fff;
+        border: none;
+        outline: none;
+        font-weight: 500;
       }
 
-      .btn-gradient:hover {
+      .btn-gradient:hover, .btn-gradient:focus {
         background: linear-gradient(to right, #4338ca, #6d28d9);
-        transform: translateY(-2px);
+        transform: translateY(-2px) scale(1.03);
+        color: #fff;
+        outline: 2px solid #a78bfa;
       }
 
       /* Glass effect for cards */
       .glass-card {
-        background: rgba(15, 23, 42, 0.8);
+        background: rgba(15, 23, 42, 0.85);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         border: 1px solid rgba(71, 85, 105, 0.3);
@@ -96,9 +103,46 @@
         word-wrap: break-word;
       }
 
+      /* Responsive tweaks */
+      @media (max-width: 1024px) {
+        .container {
+          max-width: 98vw !important;
+        }
+      }
+      @media (max-width: 768px) {
+        .container {
+          max-width: 100vw !important;
+          padding: 0 !important;
+        }
+        .glass-card {
+          border-radius: 0.5rem;
+        }
+        .p-6, .md\:p-8 {
+          padding: 1rem !important;
+        }
+        .text-2xl, .md\:text-2xl {
+          font-size: 1.25rem !important;
+        }
+      }
       @media (max-width: 640px) {
         .group-hover\:block {
           max-height: 250px;
+        }
+        .container {
+          max-width: 100vw !important;
+          padding: 0 !important;
+        }
+        .glass-card {
+          border-radius: 0.25rem;
+        }
+        .p-6, .md\:p-8 {
+          padding: 0.5rem !important;
+        }
+        .text-2xl, .md\:text-2xl {
+          font-size: 1.1rem !important;
+        }
+        .text-xl, .md\:text-xl {
+          font-size: 1rem !important;
         }
       }
       
@@ -133,6 +177,27 @@
   </head>
 
   <body class="min-h-screen flex items-center justify-center p-4">
+    <!-- Maintenance Animated Bar -->
+    <div class="w-full z-50">
+      <div class="relative w-full h-8 overflow-hidden">
+        <div class="absolute inset-0 animate-slide bg-gradient-to-r from-white via-slate-100 to-slate-300 opacity-90"></div>
+        <div class="relative z-10 flex items-center justify-center h-full">
+          <span class="text-xs md:text-sm font-semibold text-slate-800 tracking-wide animate-pulse">
+            Website is under maintenance, will release a new version soon
+          </span>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes slide {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      .animate-slide {
+        background-size: 200% 100%;
+        animation: slide 3s linear infinite;
+      }
+    </style>
     <div
       class="container mx-auto max-w-4xl glass-card rounded-xl shadow-xl overflow-hidden card-shadow border border-slate-700/30 gradient-border"
     >

@@ -5,20 +5,20 @@
 {% block page_title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-lg shadow-md overflow-hidden">
+<div class="bg-slate-900/90 glass-card rounded-xl shadow-xl overflow-hidden border border-slate-700/30">
     <!-- Profile Header -->
-    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
+    <div class="bg-gradient-to-r from-blue-900 to-indigo-900 p-6 text-white rounded-t-xl">
         <div class="flex items-center">
-            <div class="w-20 h-20 rounded-full bg-white flex items-center justify-center text-indigo-600 font-bold text-4xl shadow-lg">
+            <div class="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center text-indigo-300 font-bold text-4xl shadow-lg">
                 {{ user.name[0] | upper }}
             </div>
             <div class="ml-6">
                 <h2 class="text-2xl font-bold">{{ user.name }}</h2>
                 <div class="flex items-center mt-1">
-                    <span class="bg-white bg-opacity-30 text-white px-2 py-1 rounded text-xs font-medium">
+                    <span class="bg-indigo-800 bg-opacity-60 text-indigo-100 px-2 py-1 rounded text-xs font-medium">
                         {{ user.role | capitalize }}
                     </span>
-                    <span class="ml-2 text-sm">ID: {{ user._id }}</span>
+                    <span class="ml-2 text-sm text-slate-200">ID: {{ user._id }}</span>
                 </div>
             </div>
         </div>
@@ -28,31 +28,31 @@
     <div class="p-6 ">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Personal Information -->
-            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Personal Information</h3>
+            <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                <h3 class="text-lg font-semibold text-slate-100 mb-4">Personal Information</h3>
                 <div class="space-y-3">
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Name:</span>
-                        <span class="font-medium">{{ user.name }}</span>
+                        <span class="text-slate-400">Name:</span>
+                        <span class="font-medium text-slate-100">{{ user.name }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-600">User ID:</span>
-                        <span class="font-medium">{{ user._id }}</span>
+                        <span class="text-slate-400">User ID:</span>
+                        <span class="font-medium text-slate-100">{{ user._id }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Role:</span>
-                        <span class="font-medium">{{ user.role | capitalize }}</span>
+                        <span class="text-slate-400">Role:</span>
+                        <span class="font-medium text-slate-100">{{ user.role | capitalize }}</span>
                     </div>
                     {% if user.section %}
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Section:</span>
-                        <span class="font-medium">{{ user.section }}</span>
+                        <span class="text-slate-400">Section:</span>
+                        <span class="font-medium text-slate-100">{{ user.section }}</span>
                     </div>
                     {% endif %}
                     {% if user.last_login %}
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Last Login:</span>
-                        <span class="font-medium">{{ user.last_login }}</span>
+                        <span class="text-slate-400">Last Login:</span>
+                        <span class="font-medium text-slate-100">{{ user.last_login }}</span>
                     </div>
                     {% endif %}
                 </div>
@@ -60,27 +60,27 @@
 
             <!-- Statistics -->
             {% if attendance_stats %}
-            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Attendance Statistics</h3>
+            <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                <h3 class="text-lg font-semibold text-slate-100 mb-4">Attendance Statistics</h3>
                 <div class="space-y-3">
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Total Classes Enrolled:</span>
-                        <span class="font-medium">{{ attendance_stats.total_classes }}</span>
+                        <span class="text-slate-400">Total Classes Enrolled:</span>
+                        <span class="font-medium text-slate-100">{{ attendance_stats.total_classes }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Total Sessions:</span>
-                        <span class="font-medium">{{ attendance_stats.total_sessions }}</span>
+                        <span class="text-slate-400">Total Sessions:</span>
+                        <span class="font-medium text-slate-100">{{ attendance_stats.total_sessions }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Present Sessions:</span>
-                        <span class="font-medium">{{ attendance_stats.present_sessions }}</span>
+                        <span class="text-slate-400">Present Sessions:</span>
+                        <span class="font-medium text-slate-100">{{ attendance_stats.present_sessions }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Attendance Percentage:</span>
-                        <span class="font-medium">
+                        <span class="text-slate-400">Attendance Percentage:</span>
+                        <span class="font-medium text-slate-100">
                             <div class="flex items-center">
-                                <div class="w-32 bg-gray-200 rounded-full h-2.5 mr-2">
-                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ attendance_stats.attendance_percentage }}%"></div>
+                                <div class="w-32 bg-slate-700 rounded-full h-2.5 mr-2">
+                                    <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{ attendance_stats.attendance_percentage }}%"></div>
                                 </div>
                                 {{ attendance_stats.attendance_percentage }}%
                             </div>
@@ -91,17 +91,17 @@
             {% endif %}
 
             {% if admin_stats %}
-            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Admin Statistics</h3>
+            <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                <h3 class="text-lg font-semibold text-slate-100 mb-4">Admin Statistics</h3>
                 <div class="space-y-3">
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Classes Managed:</span>
-                        <span class="font-medium">{{ admin_stats.total_managed }}</span>
+                        <span class="text-slate-400">Classes Managed:</span>
+                        <span class="font-medium text-slate-100">{{ admin_stats.total_managed }}</span>
                     </div>
                     {% if admin_stats.total_students is not none %}
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Total Students:</span>
-                        <span class="font-medium">{{ admin_stats.total_students }}</span>
+                        <span class="text-slate-400">Total Students:</span>
+                        <span class="font-medium text-slate-100">{{ admin_stats.total_students }}</span>
                     </div>
                     {% endif %}
                 </div>
@@ -111,16 +111,16 @@
 
         <!-- Action Buttons -->
         <div class="mt-6 flex flex-wrap gap-4">
-            <a href="{{ url_for('user_settings') }}" class="btn-gradient text-white py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center">
+            <a href="{{ url_for('user_settings') }}" class="btn-gradient text-white py-2 px-4 rounded-lg shadow-md hover:scale-105 transition-all duration-300 flex items-center">
                 <i class="fas fa-cog mr-2"></i> Settings
             </a>
             {% if session.role == 'student' %}
-            <a href="{{ url_for('attendance_history') }}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center">
+            <a href="{{ url_for('attendance_history') }}" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg shadow-md hover:scale-105 transition-all duration-300 flex items-center">
                 <i class="fas fa-history mr-2"></i> Attendance History
             </a>
             {% endif %}
             {% if session.role == 'admin' %}
-            <a href="{{ url_for('view_attendance_reports') }}" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center">
+            <a href="{{ url_for('view_attendance_reports') }}" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg shadow-md hover:scale-105 transition-all duration-300 flex items-center">
                 <i class="fas fa-chart-bar mr-2"></i> Attendance Reports
             </a>
             {% endif %}

@@ -1,464 +1,452 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>{% block title %}{% endblock %} - Syntra</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}{% endblock %} - Syntra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Google Fonts - Poppins (modern, professional font) -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="shortcut icon" href="/static/favicon1.png" type="image/x-icon" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Font Awesome for icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+  <!-- Google Fonts - Poppins (modern, professional font) -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="shortcut icon" href="/static/favicon1.png" type="image/x-icon" />
 
-    <style>
-      body {
-        font-family: "Poppins", sans-serif;
-        background-color: #0f172a;
-        color: #e5e7eb;
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background-color: #0f172a;
+      color: #e5e7eb;
+    }
+
+    .sidebar {
+      transition: all 0.3s;
+      max-height: 100vh;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-right: 1.5px solid rgba(71, 85, 105, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 15px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar-collapsed {
+      width: 0 !important;
+      min-width: 0 !important;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s;
+    }
+
+    .sidebar-collapsed .absolute {
+      display: none;
+    }
+
+    .main-content {
+      transition: all 0.3s;
+    }
+
+    .main-content-expanded {
+      margin-left: 0;
+    }
+
+    .card-shadow {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2),
+        0 4px 6px -2px rgba(0, 0, 0, 0.1);
+    }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(71, 85, 105, 0.3);
+    }
+
+    .gradient-heading {
+      background: linear-gradient(to right, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .btn-gradient {
+      background: linear-gradient(to right, #4f46e5, #7c3aed);
+      transition: all 0.3s ease;
+      color: #fff;
+      border: none;
+      outline: none;
+      font-weight: 500;
+    }
+
+    .btn-gradient:hover,
+    .btn-gradient:focus {
+      background: linear-gradient(to right, #4338ca, #6d28d9);
+      transform: translateY(-2px) scale(1.03);
+      color: #fff;
+      outline: 2px solid #a78bfa;
+    }
+
+    .sidebar-link {
+      transition: all 0.2s;
+      color: #cbd5e1;
+      border-radius: 0.5rem;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+
+    .sidebar-link:hover {
+      background: linear-gradient(to right, #312e81 0%, #3730a3 100%);
+      color: #f8fafc;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+    }
+
+    .sidebar-link.active {
+      background: linear-gradient(to right, #6366f1 0%, #a78bfa 100%);
+      border-left: 4px solid #818cf8;
+      color: #f9fafb;
+      box-shadow: 0 2px 12px rgba(129, 140, 248, 0.12);
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      padding-left: 1rem;
+    }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+
+<body class="bg-slate-900">
+  <!-- Maintenance Animated Bar -->
+  <div class="fixed top-0 left-0 w-full z-50">
+    <div class="relative w-full h-8 overflow-hidden">
+      <div class="absolute inset-0 animate-slide bg-gradient-to-r from-blue-200 via-white to-gray-300 opacity-90">
+      </div>
+      <div class="relative z-10 flex items-center justify-center h-full">
+        <span class="text-xs md:text-sm font-medium text-gray-800 tracking-wide animate-pulse">
+          Website is under maintenance. A new version is coming soon.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes slide {
+      0% {
+        background-position: -200% 0;
       }
 
-      .sidebar {
-        transition: all 0.3s;
-        max-height: 100vh;
-        background-color: #0f172a;
+      100% {
+        background-position: 200% 0;
       }
+    }
 
-      .sidebar-collapsed {
-        width: 0;
-        overflow: hidden;
-      }
+    .animate-slide {
+      background-size: 200% 100%;
+      animation: slide 3s linear infinite;
+    }
+  </style>
+  <div class="flex h-screen overflow-hidden mt-8">
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar bg-slate-900 w-64 h-screen fixed shadow-lg z-10 border-r border-slate-800">
+      <!-- Logo -->
+      <div class="flex items-center justify-between p-4 border-b border-slate-800">
+        <div class="flex items-center">
+          <img src="{{ url_for('static', filename='college_logo.png') }}" alt="Logo"
+            class="w-10 h-10 object-contain mr-2" />
+          <h1 class="text-lg font-bold gradient-heading">Syntra</h1>
+        </div>
+        <button id="closeSidebar" class="text-slate-500 lg:hidden">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
 
-      .sidebar-collapsed .absolute {
-        display: none;
-      }
-
-      .main-content {
-        transition: all 0.3s;
-      }
-
-      .main-content-expanded {
-        margin-left: 0;
-      }
-
-      .card-shadow {
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2),
-          0 4px 6px -2px rgba(0, 0, 0, 0.1);
-      }
-
-      .gradient-heading {
-        background: linear-gradient(to right, #60a5fa, #a78bfa);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-      }
-
-      .btn-gradient {
-        background: linear-gradient(to right, #4f46e5, #7c3aed);
-        transition: all 0.3s ease;
-      }
-
-      .btn-gradient:hover {
-        background: linear-gradient(to right, #4338ca, #6d28d9);
-        transform: translateY(-2px);
-      }
-
-      .sidebar-link {
-        transition: all 0.2s;
-        color: #cbd5e1;
-      }
-
-      .sidebar-link:hover {
-        background-color: rgba(99, 102, 241, 0.2);
-        color: #f8fafc;
-      }
-
-      .sidebar-link.active {
-        background-color: rgba(99, 102, 241, 0.3);
-        border-left: 4px solid #818cf8;
-        color: #f9fafb;
-      }
-
-      .section-title {
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #94a3b8;
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
-        padding-left: 1rem;
-      }
-    </style>
-
-    {% block head %}{% endblock %}
-  </head>
-
-  <body class="bg-slate-900">
-    <div class="flex h-screen overflow-hidden">
-      <!-- Sidebar -->
-      <div
-        id="sidebar"
-        class="sidebar bg-slate-900 w-64 h-screen fixed shadow-lg z-10 border-r border-slate-800"
-      >
-        <!-- Logo -->
-        <div class="flex items-center justify-between p-4 border-b border-slate-800">
-          <div class="flex items-center">
-            <img
-              src="{{ url_for('static', filename='college_logo.png') }}"
-              alt="Logo"
-              class="w-10 h-10 object-contain mr-2"
-            />
-            <h1 class="text-lg font-bold gradient-heading">Syntra</h1>
+      <!-- User Info -->
+      <div class="p-4 border-b border-slate-800">
+        <div class="flex items-center">
+          {% if session.get('role') == 'admin' %}
+          <div class="w-10 h-10 rounded-full bg-purple-800 flex items-center justify-center text-purple-200 font-bold">
+            {{ session.get('name', 'User')[0] | upper }}
           </div>
-          <button id="closeSidebar" class="text-slate-500 lg:hidden">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-
-        <!-- User Info -->
-        <div class="p-4 border-b border-slate-800">
-          <div class="flex items-center">
-            {% if session.get('role') == 'admin' %}
-            <div
-              class="w-10 h-10 rounded-full bg-purple-800 flex items-center justify-center text-purple-200 font-bold"
-            >
-              {{ session.get('name', 'User')[0] | upper }}
-            </div>
-            {% else %}
-            <div
-              class="w-10 h-10 rounded-full bg-indigo-800 flex items-center justify-center text-indigo-200 font-bold"
-            >
-              {{ session.get('name', 'User')[0] | upper }}
-            </div>
-            {% endif %}
-            <div class="ml-3">
-              <p class="text-sm font-medium text-slate-200">
-                {{ session.get('name', 'User') }}
-              </p>
-              <p class="text-xs text-slate-400">
-                {{ session.get('role', 'Student') }}
-              </p>
-            </div>
+          {% else %}
+          <div class="w-10 h-10 rounded-full bg-indigo-800 flex items-center justify-center text-indigo-200 font-bold">
+            {{ session.get('name', 'User')[0] | upper }}
           </div>
-        </div>
-
-        <!-- Navigation -->
-        <div class="pt-4 pb-16 overflow-y-auto h-[calc(100vh-130px)]">
-          <!-- Dashboard -->
-          <a
-            href="{% if session.get('role') == 'admin' %}{{ url_for('admin_dashboard') }}{% elif session.get('role') == 'teacher' %}{{ url_for('teacher_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint in ['admin_dashboard', 'teacher_dashboard', 'student_dashboard'] %}active{% endif %}"
-          >
-            <i class="fas fa-tachometer-alt w-5 text-indigo-300"></i>
-            <span class="ml-3">Dashboard</span>
-          </a>
-
-          {% if session.get('role') == 'student' %}
-          <!-- Student Navigation -->
-          <div class="section-title">Attendance</div>
-          <a
-            href="{{ url_for('mark_attendance') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'mark_attendance' %}active{% endif %}"
-          >
-            <i class="fas fa-check-circle w-5 text-emerald-300"></i>
-            <span class="ml-3">Mark Attendance</span>
-          </a>
-          <a
-            href="{{ url_for('view_student_attendance') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'view_student_attendance' %}active{% endif %}"
-          >
-            <i class="fas fa-history w-5 text-sky-300"></i>
-            <span class="ml-3">My Attendance</span>
-          </a>
-
-          <div class="section-title">Academics</div>
-          <a
-            href="{{ url_for('view_class_schedule') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'view_class_schedule' %}active{% endif %}"
-          >
-            <i class="fas fa-calendar-alt w-5 text-violet-300"></i>
-            <span class="ml-3">Class Schedule</span>
-          </a>
-
-          {% elif session.get('role') == 'teacher' %}
-          <!-- Teacher Navigation -->
-          <div class="section-title">Class Management</div>
-          <a
-            href="{{ url_for('create_class') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'create_class' %}active{% endif %}"
-          >
-            <i class="fas fa-chalkboard w-5 text-emerald-300"></i>
-            <span class="ml-3">Create Class</span>
-          </a>
-          <a
-            href="{{ url_for('schedule_class') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'schedule_class' %}active{% endif %}"
-          >
-            <i class="fas fa-calendar-plus w-5 text-sky-300"></i>
-            <span class="ml-3">Schedule Class</span>
-          </a>
-          <a
-            href="{{ url_for('generate_class_qr') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'generate_class_qr' %}active{% endif %}"
-          >
-            <i class="fas fa-qrcode w-5 text-violet-300"></i>
-            <span class="ml-3">Generate QR Code</span>
-          </a>
-          {% if session.get('is_advisor') %}
-          <a
-            href="{{ url_for('advisor_manage_classes') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'advisor_manage_classes' %}active{% endif %}"
-          >
-            <i class="fas fa-book w-5 text-amber-300"></i>
-            <span class="ml-3">Manage Classes</span>
-          </a>
           {% endif %}
-
-          <div class="section-title">Academics</div>
-          <a
-            href="{{ url_for('view_attendance_reports') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'view_attendance_reports' %}active{% endif %}"
-          >
-            <i class="fas fa-clipboard-list w-5 text-amber-300"></i>
-            <span class="ml-3">Attendance Reports</span>
-          </a>
-
-          {% if session.get('is_advisor') %}
-          <div class="section-title">Class Advisor</div>
-          <a
-            href="{{ url_for('advisor_dashboard') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'advisor_dashboard' %}active{% endif %}"
-          >
-            <i class="fas fa-user-tie w-5 text-rose-300"></i>
-            <span class="ml-3">Advisor Dashboard</span>
-          </a>
-          <a
-            href="{{ url_for('manage_section_students') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'manage_section_students' %}active{% endif %}"
-          >
-            <i class="fas fa-users w-5 text-indigo-300"></i>
-            <span class="ml-3">Manage Students</span>
-          </a>
-          <a
-            href="{{ url_for('section_attendance_report') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'section_attendance_report' %}active{% endif %}"
-          >
-            <i class="fas fa-chart-bar w-5 text-emerald-300"></i>
-            <span class="ml-3">Section Reports</span>
-          </a>
-          {% endif %} {% elif session.get('role') == 'admin' %}
-          <!-- Admin Navigation -->
-          <div class="section-title">User Management</div>
-          <a
-            href="{{ url_for('register') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'register' %}active{% endif %}"
-          >
-            <i class="fas fa-user-plus w-5 text-emerald-300"></i>
-            <span class="ml-3">Register User</span>
-          </a>
-          <a
-            href="{{ url_for('manage_sections') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'manage_sections' %}active{% endif %}"
-          >
-            <i class="fas fa-layer-group w-5 text-rose-300"></i>
-            <span class="ml-3">Manage Sections</span>
-          </a>
-          <a
-            href="{{ url_for('enroll_students') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'enroll_students' %}active{% endif %}"
-          >
-            <i class="fas fa-users w-5 text-sky-300"></i>
-            <span class="ml-3">Enroll Students</span>
-          </a>
-
-          <div class="section-title">Class Management</div>
-          <a
-            href="{{ url_for('create_class') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'create_class' %}active{% endif %}"
-          >
-            <i class="fas fa-chalkboard w-5 text-emerald-300"></i>
-            <span class="ml-3">Create Class</span>
-          </a>
-          <a
-            href="{{ url_for('manage_classes') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'manage_classes' %}active{% endif %}"
-          >
-            <i class="fas fa-book w-5 text-amber-300"></i>
-            <span class="ml-3">Manage Classes</span>
-          </a>
-          <a
-            href="{{ url_for('schedule_class') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'schedule_class' %}active{% endif %}"
-          >
-            <i class="fas fa-calendar-plus w-5 text-sky-300"></i>
-            <span class="ml-3">Schedule Class</span>
-          </a>
-          <a
-            href="{{ url_for('generate_class_qr') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'generate_class_qr' %}active{% endif %}"
-          >
-            <i class="fas fa-qrcode w-5 text-violet-300"></i>
-            <span class="ml-3">Generate QR Code</span>
-          </a>
-
-          <div class="section-title">Academics</div>
-          <a
-            href="{{ url_for('view_attendance_reports') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'view_attendance_reports' %}active{% endif %}"
-          >
-            <i class="fas fa-chart-bar w-5 text-emerald-300"></i>
-            <span class="ml-3">Attendance Reports</span>
-          </a>
-          {% endif %}
-
-          <div class="section-title">Account</div>
-          <a
-            href="{{ url_for('user_profile') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'user_profile' %}active{% endif %}"
-          >
-            <i class="fas fa-user-circle w-5 text-indigo-300"></i>
-            <span class="ml-3">My Profile</span>
-          </a>
-          <a
-            href="{{ url_for('user_settings') }}"
-            class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'user_settings' %}active{% endif %}"
-          >
-            <i class="fas fa-cog w-5 text-slate-300"></i>
-            <span class="ml-3">Settings</span>
-          </a>
-        </div>
-
-        <!-- Logout Button (Fixed at bottom) -->
-        <div
-          class="absolute bottom-0 left-0 w-full border-t border-slate-800 bg-slate-900"
-        >
-          <a
-            href="{{ url_for('logout') }}"
-            class="sidebar-link flex items-center px-4 py-3 text-rose-300 hover:bg-slate-800"
-          >
-            <i class="fas fa-sign-out-alt w-5"></i>
-            <span class="ml-3 font-medium">Logout</span>
-          </a>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-slate-200">
+              {{ session.get('name', 'User') }}
+            </p>
+            <p class="text-xs text-slate-400">
+              {{ session.get('role', 'Student') }}
+            </p>
+          </div>
         </div>
       </div>
 
-      <!-- Main Content -->
-      <div id="mainContent" class="main-content flex-1 ml-64 overflow-y-auto bg-slate-900">
-        <!-- Top Header -->
-        <header class="bg-slate-800 shadow-sm">
-          <div class="flex items-center justify-between p-4">
-            <button id="openSidebar" class="text-slate-500 lg:hidden">
-              <i class="fas fa-bars"></i>
-            </button>
-            <h1 class="text-xl font-semibold text-slate-100 hidden md:block">
-              {% block page_title %}{% endblock %}
-            </h1>
-            <div class="flex items-center">
-              <span class="text-sm text-slate-300 mr-4 hidden md:block">
-                {% if session.get('last_login') %}Last login: {{
-                session.get('last_login') }}{% endif %}
-              </span>
-            </div>
-          </div>
-        </header>
+      <!-- Navigation -->
+      <div class="pt-4 pb-16 overflow-y-auto h-[calc(100vh-130px)]">
+        <!-- Dashboard -->
+        <a href="{% if session.get('role') == 'admin' %}{{ url_for('admin_dashboard') }}{% elif session.get('role') == 'teacher' %}{{ url_for('teacher_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint in ['admin_dashboard', 'teacher_dashboard', 'student_dashboard'] %}active{% endif %}">
+          <i class="fas fa-tachometer-alt w-5 text-indigo-300"></i>
+          <span class="ml-3">Dashboard</span>
+        </a>
 
-        <!-- Content Area -->
-        <main class="p-4 md:p-6">
-          <!-- Flash Messages -->
-          {% with messages = get_flashed_messages() %} {% if messages %}
-          <div
-            class="bg-rose-900 border-l-4 border-rose-500 text-rose-200 p-4 mb-6 rounded-md flex items-center"
-          >
-            <i class="fas fa-exclamation-circle mr-3 text-rose-300"></i>
-            <p>{{ messages[0] }}</p>
-          </div>
-          {% endif %} {% endwith %}
+        {% if session.get('role') == 'student' %}
+        <!-- Student Navigation -->
+        <div class="section-title">Attendance</div>
+        <a href="{{ url_for('mark_attendance') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'mark_attendance' %}active{% endif %}">
+          <i class="fas fa-check-circle w-5 text-emerald-300"></i>
+          <span class="ml-3">Mark Attendance</span>
+        </a>
+        <a href="{{ url_for('view_student_attendance') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'view_student_attendance' %}active{% endif %}">
+          <i class="fas fa-history w-5 text-sky-300"></i>
+          <span class="ml-3">My Attendance</span>
+        </a>
 
-          <!-- Main Content -->
-          <div class="bg-slate-800 rounded-lg shadow-sm p-4 md:p-6 border border-slate-700">
-            {% block content %}{% endblock %}
-          </div>
+        <div class="section-title">Academics</div>
+        <a href="{{ url_for('view_class_schedule') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'view_class_schedule' %}active{% endif %}">
+          <i class="fas fa-calendar-alt w-5 text-violet-300"></i>
+          <span class="ml-3">Class Schedule</span>
+        </a>
 
-          <!-- Footer -->
-          <div
-            class="mt-8 pt-4 border-t border-slate-700 text-center text-slate-400 text-sm"
-          >
-            <p>&copy; 2025 Syntra. All rights reserved.</p>
-            <p>
-              Made with ❤️ by
-              <a
-                href="https://uttamroy01-portfolio.web.app/"
-                class="text-indigo-400 hover:text-indigo-300"
-                >Uttam Kumar</a
-              >
-            </p>
-          </div>
-        </main>
+        {% elif session.get('role') == 'teacher' %}
+        <!-- Teacher Navigation -->
+        <div class="section-title">Class Management</div>
+        <a href="{{ url_for('create_class') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'create_class' %}active{% endif %}">
+          <i class="fas fa-chalkboard w-5 text-emerald-300"></i>
+          <span class="ml-3">Create Class</span>
+        </a>
+        <a href="{{ url_for('schedule_class') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'schedule_class' %}active{% endif %}">
+          <i class="fas fa-calendar-plus w-5 text-sky-300"></i>
+          <span class="ml-3">Schedule Class</span>
+        </a>
+        <a href="{{ url_for('generate_class_qr') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'generate_class_qr' %}active{% endif %}">
+          <i class="fas fa-qrcode w-5 text-violet-300"></i>
+          <span class="ml-3">Generate QR Code</span>
+        </a>
+        {% if session.get('is_advisor') %}
+        <a href="{{ url_for('advisor_manage_classes') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'advisor_manage_classes' %}active{% endif %}">
+          <i class="fas fa-book w-5 text-amber-300"></i>
+          <span class="ml-3">Manage Classes</span>
+        </a>
+        {% endif %}
+
+        <div class="section-title">Academics</div>
+        <a href="{{ url_for('view_attendance_reports') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'view_attendance_reports' %}active{% endif %}">
+          <i class="fas fa-clipboard-list w-5 text-amber-300"></i>
+          <span class="ml-3">Attendance Reports</span>
+        </a>
+
+        {% if session.get('is_advisor') %}
+        <div class="section-title">Class Advisor</div>
+        <a href="{{ url_for('advisor_dashboard') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'advisor_dashboard' %}active{% endif %}">
+          <i class="fas fa-user-tie w-5 text-rose-300"></i>
+          <span class="ml-3">Advisor Dashboard</span>
+        </a>
+        <a href="{{ url_for('manage_section_students') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'manage_section_students' %}active{% endif %}">
+          <i class="fas fa-users w-5 text-indigo-300"></i>
+          <span class="ml-3">Manage Students</span>
+        </a>
+        <a href="{{ url_for('section_attendance_report') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'section_attendance_report' %}active{% endif %}">
+          <i class="fas fa-chart-bar w-5 text-emerald-300"></i>
+          <span class="ml-3">Section Reports</span>
+        </a>
+        {% endif %} {% elif session.get('role') == 'admin' %}
+        <!-- Admin Navigation -->
+        <div class="section-title">User Management</div>
+        <a href="{{ url_for('register') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'register' %}active{% endif %}">
+          <i class="fas fa-user-plus w-5 text-emerald-300"></i>
+          <span class="ml-3">Register User</span>
+        </a>
+        <a href="{{ url_for('manage_sections') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'manage_sections' %}active{% endif %}">
+          <i class="fas fa-layer-group w-5 text-rose-300"></i>
+          <span class="ml-3">Manage Sections</span>
+        </a>
+        <a href="{{ url_for('enroll_students') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'enroll_students' %}active{% endif %}">
+          <i class="fas fa-users w-5 text-sky-300"></i>
+          <span class="ml-3">Enroll Students</span>
+        </a>
+
+        <div class="section-title">Class Management</div>
+        <a href="{{ url_for('create_class') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'create_class' %}active{% endif %}">
+          <i class="fas fa-chalkboard w-5 text-emerald-300"></i>
+          <span class="ml-3">Create Class</span>
+        </a>
+        <a href="{{ url_for('manage_classes') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'manage_classes' %}active{% endif %}">
+          <i class="fas fa-book w-5 text-amber-300"></i>
+          <span class="ml-3">Manage Classes</span>
+        </a>
+        <a href="{{ url_for('schedule_class') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'schedule_class' %}active{% endif %}">
+          <i class="fas fa-calendar-plus w-5 text-sky-300"></i>
+          <span class="ml-3">Schedule Class</span>
+        </a>
+        <a href="{{ url_for('generate_class_qr') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'generate_class_qr' %}active{% endif %}">
+          <i class="fas fa-qrcode w-5 text-violet-300"></i>
+          <span class="ml-3">Generate QR Code</span>
+        </a>
+
+        <div class="section-title">Academics</div>
+        <a href="{{ url_for('view_attendance_reports') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'view_attendance_reports' %}active{% endif %}">
+          <i class="fas fa-chart-bar w-5 text-emerald-300"></i>
+          <span class="ml-3">Attendance Reports</span>
+        </a>
+        {% endif %}
+
+        <div class="section-title">Account</div>
+        <a href="{{ url_for('user_profile') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'user_profile' %}active{% endif %}">
+          <i class="fas fa-user-circle w-5 text-indigo-300"></i>
+          <span class="ml-3">My Profile</span>
+        </a>
+        <a href="{{ url_for('user_settings') }}"
+          class="sidebar-link flex items-center px-4 py-2 {% if request.endpoint == 'user_settings' %}active{% endif %}">
+          <i class="fas fa-cog w-5 text-slate-300"></i>
+          <span class="ml-3">Settings</span>
+        </a>
+      </div>
+
+      <!-- Logout Button (Fixed at bottom) -->
+      <div class="absolute bottom-0 left-0 w-full border-t border-slate-800 bg-slate-900">
+        <a href="{{ url_for('logout') }}"
+          class="sidebar-link flex items-center px-4 py-3 text-rose-300 hover:bg-slate-800">
+          <i class="fas fa-sign-out-alt w-5"></i>
+          <span class="ml-3 font-medium">Logout</span>
+        </a>
       </div>
     </div>
 
-    <!-- JavaScript for Sidebar Toggle -->
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const sidebar = document.getElementById("sidebar");
-        const mainContent = document.getElementById("mainContent");
-        const openSidebarBtn = document.getElementById("openSidebar");
-        const closeSidebarBtn = document.getElementById("closeSidebar");
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content flex-1 ml-64 overflow-y-auto bg-slate-900">
+      <!-- Top Header -->
+      <header class="bg-slate-800 shadow-sm">
+        <div class="flex items-center justify-between p-4">
+          <button id="openSidebar" class="text-slate-500 lg:hidden">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h1 class="text-xl font-semibold text-slate-100 hidden md:block">
+            {% block page_title %}{% endblock %}
+          </h1>
+          <div class="flex items-center">
+            <span class="text-sm text-slate-300 mr-4 hidden md:block">
+              {% if session.get('last_login') %}Last login: {{
+              session.get('last_login') }}{% endif %}
+            </span>
+          </div>
+        </div>
+      </header>
 
-        function closeSidebar() {
-          sidebar.classList.add("sidebar-collapsed");
-          mainContent.classList.add("main-content-expanded");
-          mainContent.classList.remove("ml-64");
-        }
+      <!-- Content Area -->
+      <main class="p-4 md:p-6">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %} {% if messages %}
+        <div class="bg-rose-900 border-l-4 border-rose-500 text-rose-200 p-4 mb-6 rounded-md flex items-center">
+          <i class="fas fa-exclamation-circle mr-3 text-rose-300"></i>
+          <p>{{ messages[0] }}</p>
+        </div>
+        {% endif %} {% endwith %}
 
-        function openSidebar() {
-          sidebar.classList.remove("sidebar-collapsed");
-          mainContent.classList.remove("main-content-expanded");
-          mainContent.classList.add("ml-64");
-        }
+        <!-- Main Content -->
+        <div class="bg-slate-800 rounded-lg shadow-sm p-4 md:p-6 border border-slate-700">
+          {% block content %}{% endblock %}
+        </div>
 
-        // For mobile: close sidebar by default
-        if (window.innerWidth < 1024) {
+        <!-- Footer -->
+        <div class="mt-8 pt-4 border-t border-slate-700 text-center text-slate-400 text-sm">
+          <p>&copy; 2025 Syntra. All rights reserved.</p>
+          <p>
+            Made with ❤️ by
+            <a href="https://uttamroy01-portfolio.web.app/" class="text-indigo-400 hover:text-indigo-300">Uttam
+              Kumar</a>
+          </p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- JavaScript for Sidebar Toggle -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const sidebar = document.getElementById("sidebar");
+      const mainContent = document.getElementById("mainContent");
+      const openSidebarBtn = document.getElementById("openSidebar");
+      const closeSidebarBtn = document.getElementById("closeSidebar");
+
+      function closeSidebar() {
+        sidebar.classList.add("sidebar-collapsed");
+        mainContent.classList.add("main-content-expanded");
+        mainContent.classList.remove("ml-64");
+      }
+
+      function openSidebar() {
+        sidebar.classList.remove("sidebar-collapsed");
+        mainContent.classList.remove("main-content-expanded");
+        mainContent.classList.add("ml-64");
+      }
+
+      // For mobile: close sidebar by default
+      if (window.innerWidth < 1024) {
+        closeSidebar();
+      }
+
+      openSidebarBtn.addEventListener("click", openSidebar);
+      closeSidebarBtn.addEventListener("click", closeSidebar);
+
+      // Close sidebar when clicking outside on mobile
+      document.addEventListener("click", function (event) {
+        if (
+          window.innerWidth < 1024 &&
+          !sidebar.contains(event.target) &&
+          !openSidebarBtn.contains(event.target) &&
+          !sidebar.classList.contains("sidebar-collapsed")
+        ) {
           closeSidebar();
         }
-
-        openSidebarBtn.addEventListener("click", openSidebar);
-        closeSidebarBtn.addEventListener("click", closeSidebar);
-
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener("click", function (event) {
-          if (
-            window.innerWidth < 1024 &&
-            !sidebar.contains(event.target) &&
-            !openSidebarBtn.contains(event.target) &&
-            !sidebar.classList.contains("sidebar-collapsed")
-          ) {
-            closeSidebar();
-          }
-        });
-
-        // Handle window resize
-        window.addEventListener("resize", function () {
-          if (window.innerWidth >= 1024) {
-            openSidebar();
-          } else {
-            closeSidebar();
-          }
-        });
       });
-    </script>
 
-    {% block scripts %}{% endblock %}
-  </body>
+      // Handle window resize
+      window.addEventListener("resize", function () {
+        if (window.innerWidth >= 1024) {
+          openSidebar();
+        } else {
+          closeSidebar();
+        }
+      });
+    });
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+
 </html>

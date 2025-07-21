@@ -1,39 +1,41 @@
 {% extends "base.html" %}
 {% block title %}Enroll Students{% endblock %}
 {% block content %}
-    <h2 class="text-4xl font-bold text-center text-gray-100 mb-6">Enroll Students in Class</h2>
+    <h2 class="text-3xl md:text-4xl font-bold text-center gradient-heading mb-8">Enroll Students in Class</h2>
 
-    <form method="POST" action="{{ url_for('enroll_students') }}" class="mt-4">
-        <div class="mb-4">
-            <label for="class_select" class="block text-gray-700">Select Class:</label>
-            <select id="class_select" name="class_select" class="border rounded-lg p-2 w-full" onchange="updateClassCode()">
-                <option value="" selected>-- Select a Class --</option>
-                {% for class in classes %}
-                    <option value="{{ class.code }}">{{ class.name }} ({{ class.code }})</option>
-                {% endfor %}
-            </select>
+    <div class="max-w-lg mx-auto bg-slate-800/80 glass-card rounded-xl shadow-xl p-6 md:p-8 border border-slate-700/30">
+      <form method="POST" action="{{ url_for('enroll_students') }}" class="space-y-5">
+        <div>
+          <label for="class_select" class="block text-slate-200 font-medium mb-1">Select Class:</label>
+          <select id="class_select" name="class_select" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition" onchange="updateClassCode()">
+            <option value="" selected>-- Select a Class --</option>
+            {% for class in classes %}
+              <option value="{{ class.code }}">{{ class.name }} ({{ class.code }})</option>
+            {% endfor %}
+          </select>
         </div>
 
-        <div class="mb-4">
-            <label for="enroll_class_code" class="block text-gray-700">Class Code:</label>
-            <input type="text" id="enroll_class_code" name="enroll_class_code" readonly required class="border rounded-lg p-2 w-full bg-gray-100">
+        <div>
+          <label for="enroll_class_code" class="block text-slate-200 font-medium mb-1">Class Code:</label>
+          <input type="text" id="enroll_class_code" name="enroll_class_code" readonly required class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
         </div>
 
-        <div class="mb-4">
-            <label for="enroll_section" class="block text-gray-700">Section:</label>
-            <select id="enroll_section" name="enroll_section" class="border rounded-lg p-2 w-full">
-                <option value="" selected>-- Select a Section --</option>
-                {% for section in sections %}
-                    <option value="{{ section }}">{{ section }}</option>
-                {% endfor %}
-            </select>
+        <div>
+          <label for="enroll_section" class="block text-slate-200 font-medium mb-1">Section:</label>
+          <select id="enroll_section" name="enroll_section" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+            <option value="" selected>-- Select a Section --</option>
+            {% for section in sections %}
+              <option value="{{ section }}">{{ section }}</option>
+            {% endfor %}
+          </select>
         </div>
 
-        <button type="submit" class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 w-full">Enroll</button>
-    </form>
-    <a href="{{ url_for('admin_dashboard') }}">
-        <button class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2 w-full">Back</button>
-    </a>
+        <button type="submit" class="btn-gradient w-full py-2 rounded-lg text-lg font-semibold shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">Enroll</button>
+      </form>
+      <a href="{{ url_for('admin_dashboard') }}">
+        <button class="w-full mt-3 py-2 rounded-lg bg-slate-700 text-slate-200 font-semibold hover:bg-slate-600 transition shadow-md">Back</button>
+      </a>
+    </div>
 
     <script>
         function updateClassCode() {

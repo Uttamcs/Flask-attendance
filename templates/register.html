@@ -1,83 +1,85 @@
 {% extends "base.html" %} {% block title %}Register User{% endblock %} {% block
 content %}
-<h2 class="text-4xl font-bold text-center text-gray-100 mb-6">
+<h2 class="text-3xl md:text-4xl font-bold text-center gradient-heading mb-8">
   Register New User
 </h2>
 
-<form method="POST" action="{{ url_for('register') }}" class="mt-4">
-  <div class="mb-4">
-    <label for="reg_id" class="block text-gray-700">User ID:</label>
-    <input
-      type="text"
-      id="reg_id"
-      name="reg_id"
-      required
-      class="border rounded-lg p-2 w-full"
-    />
-  </div>
+<div class="max-w-lg mx-auto bg-slate-800/80 glass-card rounded-xl shadow-xl p-6 md:p-8 border border-slate-700/30">
+  <form method="POST" action="{{ url_for('register') }}" class="space-y-5">
+    <div>
+      <label for="reg_id" class="block text-slate-200 font-medium mb-1">User ID:</label>
+      <input
+        type="text"
+        id="reg_id"
+        name="reg_id"
+        required
+        class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+      />
+    </div>
 
-  <div class="mb-4">
-    <label for="reg_name" class="block text-gray-700">Name:</label>
-    <input
-      type="text"
-      id="reg_name"
-      name="reg_name"
-      required
-      class="border rounded-lg p-2 w-full"
-    />
-  </div>
+    <div>
+      <label for="reg_name" class="block text-slate-200 font-medium mb-1">Name:</label>
+      <input
+        type="text"
+        id="reg_name"
+        name="reg_name"
+        required
+        class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+      />
+    </div>
 
-  <div class="mb-4">
-    <label for="reg_pass" class="block text-gray-700">Password:</label>
-    <input
-      type="password"
-      id="reg_pass"
-      name="reg_pass"
-      required
-      class="border rounded-lg p-2 w-full"
-    />
-  </div>
+    <div>
+      <label for="reg_pass" class="block text-slate-200 font-medium mb-1">Password:</label>
+      <input
+        type="password"
+        id="reg_pass"
+        name="reg_pass"
+        required
+        class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+      />
+    </div>
 
-  <div class="mb-4">
-    <label for="reg_role" class="block text-gray-700">Role:</label>
-    <select
-      id="reg_role"
-      name="reg_role"
-      class="border rounded-lg p-2 w-full"
-      onchange="toggleSectionField()"
+    <div>
+      <label for="reg_role" class="block text-slate-200 font-medium mb-1">Role:</label>
+      <select
+        id="reg_role"
+        name="reg_role"
+        class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+        onchange="toggleSectionField()"
+      >
+        <option value="student">Student</option>
+        <option value="teacher">Teacher</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+
+    <div id="section_field">
+      <label for="reg_section" class="block text-slate-200 font-medium mb-1">Section:</label>
+      <input
+        type="text"
+        id="reg_section"
+        name="reg_section"
+        placeholder="e.g., A, B, C"
+        required
+        class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+      />
+    </div>
+
+    <button
+      type="submit"
+      class="btn-gradient w-full py-2 rounded-lg text-lg font-semibold shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
     >
-      <option value="student">Student</option>
-      <option value="teacher">Teacher</option>
-      <option value="admin">Admin</option>
-    </select>
-  </div>
-
-  <div id="section_field" class="mb-4">
-    <label for="reg_section" class="block text-gray-700">Section:</label>
-    <input
-      type="text"
-      id="reg_section"
-      name="reg_section"
-      placeholder="e.g., A, B, C"
-      required
-      class="border rounded-lg p-2 w-full"
-    />
-  </div>
-
-  <button
-    type="submit"
-    class="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 w-full"
-  >
-    Register
-  </button>
-</form>
-<a href="{{ url_for('admin_dashboard') }}">
-  <button
-    class="bg-gray-500 text-white rounded-lg p-2 hover:bg-gray-600 mt-2 w-full"
-  >
-    Back
-  </button>
-</a>
+      Register
+    </button>
+  </form>
+  <a href="{{ url_for('admin_dashboard') }}">
+    <button
+      class="w-full mt-3 py-2 rounded-lg bg-slate-700 text-slate-200 font-semibold hover:bg-slate-600 transition shadow-md"
+    >
+      Back
+    </button>
+  </a>
+</div>
 
 <script>
   function toggleSectionField() {
