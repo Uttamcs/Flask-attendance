@@ -2,18 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>{% block title %}{% endblock %} - Smart Attendance</title>
+    <title>{% block title %}{% endblock %} - Syntra</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Google Fonts - Poppins (modern, professional font) -->
+    <!-- Google Fonts - Inter (modern, clean font) -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="shortcut icon" href="/static/favicon1.png" type="image/x-icon" />
+
+    <!-- Custom Dark Theme CSS -->    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-theme.css') }}">
 
     <!-- Font Awesome for icons -->
     <link
@@ -24,35 +27,48 @@
     <style>
       body {
         user-select: none;
-        font-family: "Poppins", sans-serif;
+        font-family: "Inter", sans-serif;
+        color: #f1f5f9;
+        background-color: #0f172a;
+        background-image: 
+          radial-gradient(circle at 25% 25%, rgba(79, 70, 229, 0.15) 0%, transparent 50%),
+          radial-gradient(circle at 75% 75%, rgba(124, 58, 237, 0.15) 0%, transparent 50%);
       }
 
       .card-shadow {
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
-          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4),
+          0 15px 15px rgba(0, 0, 0, 0.3);
       }
 
       .gradient-heading {
-        background: linear-gradient(to right, #3b82f6, #6366f1);
+        background: linear-gradient(to right, #60a5fa, #a78bfa);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
       }
 
       .btn-gradient {
-        background: linear-gradient(to right, #3b82f6, #6366f1);
+        background: linear-gradient(to right, #4f46e5, #7c3aed);
         transition: all 0.3s ease;
       }
 
       .btn-gradient:hover {
-        background: linear-gradient(to right, #2563eb, #4f46e5);
+        background: linear-gradient(to right, #4338ca, #6d28d9);
         transform: translateY(-2px);
+      }
+
+      /* Glass effect for cards */
+      .glass-card {
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(71, 85, 105, 0.3);
       }
 
       /* Profile Dropdown Styles */
       .group-hover\:block {
-        min-width: 200px;
-        max-height: 300px;
+        min-width: 220px;
+        max-height: 350px;
         overflow-y: auto;
         white-space: normal;
         word-wrap: break-word;
@@ -60,10 +76,11 @@
         position: absolute;
         right: 0;
         margin-top: 0.5rem;
-        background-color: white;
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: #1e293b;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         display: none; /* Hide by default */
+        border: 1px solid rgba(71, 85, 105, 0.3);
       }
 
       .group:hover .group-hover\:block {
@@ -81,37 +98,64 @@
 
       @media (max-width: 640px) {
         .group-hover\:block {
-          max-height: 200px;
+          max-height: 250px;
         }
+      }
+      
+      /* Animated gradient border */
+      .gradient-border {
+        position: relative;
+        border-radius: 1rem;
+      }
+      
+      .gradient-border::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, #4f46e5, #7c3aed, #8b5cf6, #4f46e5);
+        border-radius: 1.1rem;
+        z-index: -1;
+        background-size: 400% 400%;
+        animation: gradient-animation 6s ease infinite;
+      }
+      
+      @keyframes gradient-animation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
       }
     </style>
 
     {% block head %}{% endblock %}
   </head>
 
-  <body
-    class="bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 min-h-screen flex items-center justify-center p-4"
-  >
+  <body class="min-h-screen flex items-center justify-center p-4">
     <div
-      class="container mx-auto max-w-4xl bg-white rounded-xl shadow-xl overflow-hidden card-shadow"
+      class="container mx-auto max-w-4xl glass-card rounded-xl shadow-xl overflow-hidden card-shadow border border-slate-700/30 gradient-border"
     >
       <div class="p-6 md:p-8">
         <!-- Header -->
         <div
-          class="flex flex-col md:flex-row items-center justify-between mb-8 border-b pb-6"
+          class="flex flex-col md:flex-row items-center justify-between mb-8 border-b border-slate-700/50 pb-6"
         >
           <div class="flex items-center mb-4 md:mb-0">
-            <img
-              src="{{ url_for('static', filename='college_logo.png') }}"
-              alt="Logo"
-              class="w-16 h-16 object-contain mr-4"
-            />
+            <div class="bg-gradient-to-r from-indigo-600 to-violet-600 p-2 rounded-full shadow-lg mr-4">
+              <img
+                src="{{ url_for('static', filename='college_logo.png') }}"
+                alt="Logo"
+                class="w-12 h-12 object-contain rounded-full"
+              />
+            </div>
             <h1 class="text-2xl font-bold gradient-heading">
-              Smart Attendance System
+              Syntra
+              <span class="block text-sm font-normal text-indigo-300">Where Every Presence Counts</span>
             </h1>
           </div>
           <div class="flex items-center">
-            <div class="text-sm text-gray-600 mr-4">
+            <div class="text-sm text-indigo-300 mr-4">
               {% block header_right %}{% endblock %}
             </div>
 
@@ -119,50 +163,50 @@
             {% if session.get('user_id') %}
             <div class="relative group">
               <button
-                class="flex items-center space-x-2 bg-white rounded-full pl-2 pr-4 py-1 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200"
+                class="flex items-center space-x-2 bg-slate-800/80 rounded-full pl-2 pr-4 py-1.5 shadow-md hover:shadow-lg transition-all duration-300 border border-slate-600/50 hover:border-indigo-500/50"
               >
                 {% if session.get('role') == 'admin' %}
                 <div
-                  class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold"
+                  class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center text-white font-bold shadow-inner"
                 >
                   {{ session.get('name', 'User')[0] | upper }}
                 </div>
                 {% else %}
                 <div
-                  class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold"
+                  class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center text-white font-bold shadow-inner"
                 >
                   {{ session.get('name', 'User')[0] | upper }}
                 </div>
                 {% endif %}
                 <div class="flex flex-col items-start">
-                  <span class="text-sm font-medium text-gray-700"
+                  <span class="text-sm font-medium text-slate-100"
                     >{{ session.get('name', 'User') }}</span
                   >
-                  <span class="text-xs text-gray-500"
+                  <span class="text-xs text-slate-400"
                     >{{ session.get('role', 'Student') }}</span
                   >
                 </div>
-                <i class="fas fa-chevron-down text-xs text-gray-400 ml-1"></i>
+                <i class="fas fa-chevron-down text-xs text-slate-400 ml-1"></i>
               </button>
 
               <!-- Dropdown Menu -->
               <div class="group-hover:block">
                 <div class="py-2">
-                  <div class="px-4 py-3 border-b border-gray-100 bg-indigo-50">
-                    <p class="text-sm font-medium text-gray-700">
+                  <div class="px-4 py-3 border-b border-slate-700/50 bg-gradient-to-r from-indigo-800 to-violet-800">
+                    <p class="text-sm font-medium text-slate-100">
                       {{ session.get('name', 'User') }}
                     </p>
-                    <p class="text-xs text-gray-500 truncate">
+                    <p class="text-xs text-slate-300 truncate">
                       ID: {{ session.get('user_id', '') }}
                     </p>
-                    <p class="text-xs text-gray-500 mt-1">
+                    <p class="text-xs text-slate-300 mt-1">
                       <span
-                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800"
+                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-700 text-indigo-100"
                       >
                         {{ session.get('role', 'Student') }}
                       </span>
                       {% if session.get('last_login') %}
-                      <span class="text-xs text-gray-400 ml-2"
+                      <span class="text-xs text-slate-400 ml-2"
                         >Last login: {{ session.get('last_login') }}</span
                       >
                       {% endif %}
@@ -171,145 +215,145 @@
                   {% if session.get('role') == 'student' %}
                   <a
                     href="{{ url_for('student_dashboard') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-tachometer-alt mr-2 text-indigo-500"></i>
+                    <i class="fas fa-tachometer-alt mr-2 text-indigo-300"></i>
                     Dashboard
                   </a>
                   <a
                     href="{{ url_for('mark_attendance') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-check-circle mr-2 text-green-500"></i>
+                    <i class="fas fa-check-circle mr-2 text-emerald-300"></i>
                     Mark Attendance
                   </a>
                   <a
                     href="{{ url_for('attendance_history') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-history mr-2 text-blue-500"></i>
+                    <i class="fas fa-history mr-2 text-sky-300"></i>
                     Attendance History
                   </a>
                   <a
                     href="{{ url_for('view_class_schedule') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-calendar-alt mr-2 text-purple-500"></i>
+                    <i class="fas fa-calendar-alt mr-2 text-violet-300"></i>
                     Class Schedule
                   </a>
                   {% elif session.get('role') == 'teacher' %}
                   <a
                     href="{{ url_for('teacher_dashboard') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-tachometer-alt mr-2 text-indigo-500"></i>
+                    <i class="fas fa-tachometer-alt mr-2 text-indigo-300"></i>
                     Teacher Dashboard
                   </a>
                   <a
                     href="{{ url_for('create_class') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-chalkboard mr-2 text-green-500"></i>
+                    <i class="fas fa-chalkboard mr-2 text-emerald-300"></i>
                     Create Class
                   </a>
                   <a
                     href="{{ url_for('schedule_class') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-calendar-plus mr-2 text-blue-500"></i>
+                    <i class="fas fa-calendar-plus mr-2 text-sky-300"></i>
                     Schedule Class
                   </a>
                   <a
                     href="{{ url_for('generate_class_qr') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-qrcode mr-2 text-purple-500"></i>
+                    <i class="fas fa-qrcode mr-2 text-violet-300"></i>
                     Generate QR Code
                   </a>
                   <a
                     href="{{ url_for('view_attendance_reports') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-clipboard-list mr-2 text-yellow-500"></i>
+                    <i class="fas fa-clipboard-list mr-2 text-amber-300"></i>
                     View Attendance
                   </a>
                   {% if session.get('is_advisor') %}
                   <a
                     href="{{ url_for('advisor_dashboard') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-user-tie mr-2 text-orange-500"></i>
+                    <i class="fas fa-user-tie mr-2 text-rose-300"></i>
                     Class Advisor Panel
                   </a>
                   {% endif %} {% elif session.get('role') == 'admin' %}
                   <a
                     href="{{ url_for('admin_dashboard') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-tachometer-alt mr-2 text-indigo-500"></i>
+                    <i class="fas fa-tachometer-alt mr-2 text-indigo-300"></i>
                     Dashboard
                   </a>
                   <a
                     href="{{ url_for('register') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-user-plus mr-2 text-green-500"></i>
+                    <i class="fas fa-user-plus mr-2 text-emerald-300"></i>
                     Register User
                   </a>
                   <a
                     href="{{ url_for('manage_sections') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-layer-group mr-2 text-orange-500"></i>
+                    <i class="fas fa-layer-group mr-2 text-rose-300"></i>
                     Manage Sections
                   </a>
                   <a
                     href="{{ url_for('enroll_students') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-users mr-2 text-blue-500"></i>
+                    <i class="fas fa-users mr-2 text-sky-300"></i>
                     Enroll Students
                   </a>
                   <a
                     href="{{ url_for('manage_classes') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-book mr-2 text-yellow-500"></i>
+                    <i class="fas fa-book mr-2 text-amber-300"></i>
                     Manage Classes
                   </a>
                   <a
                     href="{{ url_for('generate_class_qr') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-qrcode mr-2 text-purple-500"></i>
+                    <i class="fas fa-qrcode mr-2 text-violet-300"></i>
                     Generate QR Code
                   </a>
                   <a
                     href="{{ url_for('view_attendance_reports') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-chart-bar mr-2 text-green-500"></i>
+                    <i class="fas fa-chart-bar mr-2 text-emerald-300"></i>
                     Attendance Reports
                   </a>
                   {% endif %}
-                  <div class="border-t border-gray-100 my-1"></div>
+                  <div class="border-t border-slate-700/50 my-1"></div>
                   <a
                     href="{{ url_for('user_profile') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-user-circle mr-2 text-indigo-500"></i>
+                    <i class="fas fa-user-circle mr-2 text-indigo-300"></i>
                     My Profile
                   </a>
                   <a
                     href="{{ url_for('user_settings') }}"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/70 transition-colors"
                   >
-                    <i class="fas fa-cog mr-2 text-gray-500"></i> Settings
+                    <i class="fas fa-cog mr-2 text-slate-300"></i> Settings
                   </a>
-                  <div class="border-t border-gray-100 my-1"></div>
+                  <div class="border-t border-slate-700/50 my-1"></div>
                   <a
                     href="{{ url_for('logout') }}"
-                    class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    class="block px-4 py-2 text-sm text-rose-300 hover:bg-slate-700/70 transition-colors"
                   >
                     <i class="fas fa-sign-out-alt mr-2"></i> Logout
                   </a>
@@ -319,9 +363,9 @@
             {% else %}
             <a
               href="{{ url_for('login') }}"
-              class="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+              class="text-sm bg-indigo-600/80 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-full transition-all duration-300 flex items-center"
             >
-              <i class="fas fa-sign-in-alt mr-1"></i> Login
+              <i class="fas fa-sign-in-alt mr-2"></i> Login
             </a>
             {% endif %}
           </div>
@@ -329,7 +373,7 @@
 
         <!-- Page Title -->
         <h2
-          class="text-xl md:text-2xl font-semibold text-gray-800 mb-6 text-center"
+          class="text-xl md:text-2xl font-semibold text-slate-100 mb-6 text-center"
         >
           {% block page_title %}{% endblock %}
         </h2>
@@ -337,26 +381,28 @@
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages() %} {% if messages %}
         <div
-          class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md flex items-center"
+          class="bg-rose-900/80 border-l-4 border-rose-500 text-rose-100 p-4 mb-6 rounded-md flex items-center"
         >
-          <i class="fas fa-exclamation-circle mr-3 text-red-500"></i>
+          <i class="fas fa-exclamation-circle mr-3 text-rose-300"></i>
           <p>{{ messages[0] }}</p>
         </div>
         {% endif %} {% endwith %}
 
         <!-- Main Content -->
-        <div class="bg-white rounded-lg">{% block content %}{% endblock %}</div>
+        <div class="bg-slate-800 rounded-lg p-6 shadow-inner border border-slate-700/30">
+          {% block content %}{% endblock %}
+        </div>
 
         <!-- Footer -->
         <div
-          class="mt-8 pt-4 border-t border-gray-200 text-center text-gray-600 text-sm"
+          class="mt-8 pt-4 border-t border-slate-700/50 text-center text-slate-400 text-sm"
         >
-          <p>&copy; 2025 Smart Attendance System. All rights reserved.</p>
+          <p>&copy; 2025 Syntra. All rights reserved.</p>
           <p>
             Made with ❤️ by
             <a
               href="https://uttamroy01-portfolio.web.app/"
-              class="text-blue-600"
+              class="text-indigo-400 hover:text-indigo-300"
               >Uttam Kumar</a
             >
           </p>

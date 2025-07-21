@@ -65,7 +65,7 @@ try:
     mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/')
 
     # Extract database name from URI if present
-    db_name = os.environ.get('MONGO_DB_NAME', 'smart_attendance')
+    db_name = os.environ.get('MONGO_DB_NAME', 'syntra_attendance')
 
     # Handle Railway's MongoDB connection string format
     if '?retryWrites=' in mongo_uri and not db_name in mongo_uri:
@@ -372,7 +372,7 @@ def verify_gps(class_code, student_location):
     distance = R * c
 
     # Maximum allowed distance: increased to 50 meters to account for GPS inaccuracy
-    max_distance = 50  # Increased from 20m to 50m
+    max_distance = 20  # Increased from 20m to 20m
 
     # Get accuracy information if available
     student_accuracy = student_location.get("accuracy", 0)
@@ -2089,7 +2089,7 @@ def process_attendance_with_class_qr(frame, class_session_data, face_verified=Fa
                 total_accuracy = max(student_accuracy + classroom_accuracy, 10)
 
                 # Calculate the adjusted max distance
-                base_distance = 50  # Base allowed distance
+                base_distance = 20  # Base allowed distance
                 adjusted_max = base_distance + total_accuracy
 
                 distance_msg = f" You are {distance:.1f}m away from the classroom (allowed: {adjusted_max:.1f}m)."
@@ -2352,7 +2352,7 @@ def process_location_verification(class_session_data, student_location, student_
             total_accuracy = max(student_accuracy + classroom_accuracy, 10)
 
             # Calculate the adjusted max distance
-            base_distance = 50  # Base allowed distance
+            base_distance = 2  # Base allowed distance
             adjusted_max = base_distance + total_accuracy
 
             distance_msg = f" You are {distance:.1f}m away from the classroom (allowed: {adjusted_max:.1f}m)."
@@ -2431,11 +2431,26 @@ if __name__ == "__main__":
     # Get host and port from environment variables
     host = os.environ.get('HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', 5000))
+    
+    # Try to run on the specified port, if it fails, try alternative ports
+    max_port_attempts = 10
+    for port_attempt in range(max_port_attempts):
+        try:
+            if port_attempt > 0:
+                port = port + port_attempt
+                
+            # Print a custom message showing the localhost URL
+            print(f"\n* Flask application running at: http://localhost:{port}")
+            print(f"* To access the application, open your browser and navigate to: http://localhost:{port}\n")
+            
+            # Run the app with environment-based configuration
+            socketio.run(app, debug=False, host=host, port=port, log_output=False, server='eventlet')
 
-    # Print a custom message showing the localhost URL
-    print(f"\n* Flask application running at: http://localhost:{port}")
-    print(f"* To access the application, open your browser and navigate to: http://localhost:{port}\n")
-
-    # Run the app with environment-based configuration
-    # Disable all logging output
-    socketio.run(app, debug=False, host=host, port=port, log_output=False)
+            break
+        except OSError as e:
+            if "address already in use" in str(e).lower() and port_attempt < max_port_attempts - 1:
+                print(f"Port {port} is already in use, trying port {port + 1}...")
+                continue
+            else:
+                print(f"Error starting server: {e}")
+                raise

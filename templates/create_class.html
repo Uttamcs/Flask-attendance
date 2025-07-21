@@ -4,43 +4,43 @@ content %}
   Create New Class
 </h2>
 
-<div class="bg-blue-50 p-4 rounded-lg shadow mb-6">
-  <h3 class="text-lg font-semibold text-blue-800 mb-2">
+<div class="bg-slate-800 p-4 rounded-lg shadow mb-6 border border-indigo-500/30">
+  <h3 class="text-lg font-semibold text-indigo-300 mb-2">
     Location Information:
   </h3>
-  <p class="text-blue-700">
+  <p class="text-indigo-200">
     We need to capture the classroom location for attendance verification.
     Please ensure you are in the classroom when creating this class.
   </p>
-  <div id="location-status" class="mt-2 font-semibold text-yellow-600">
+  <div id="location-status" class="mt-2 font-semibold text-yellow-300">
     Waiting for location...
   </div>
 </div>
 
 <form method="POST" class="mt-4" id="class-form">
-  <label for="class_name" class="block">Class Name:</label>
+  <label for="class_name" class="block text-gray-100">Class Name:</label>
   <input
     type="text"
     id="class_name"
     name="class_name"
     required
-    class="border rounded-lg p-2 w-full"
+    class="border rounded-lg p-2 w-full bg-slate-800 text-gray-100"
   /><br />
 
-  <label for="class_code" class="block mt-2">Class Code:</label>
+  <label for="class_code" class="block mt-2 text-gray-100">Class Code:</label>
   <input
     type="text"
     id="class_code"
     name="class_code"
     required
-    class="border rounded-lg p-2 w-full"
+    class="border rounded-lg p-2 w-full bg-slate-800 text-gray-100"
   /><br />
 
-  <label for="class_desc" class="block mt-2">Description (Optional):</label>
+  <label for="class_desc" class="block mt-2 text-gray-100">Description (Optional):</label>
   <textarea
     id="class_desc"
     name="class_desc"
-    class="border rounded-lg p-2 w-full"
+    class="border rounded-lg p-2 w-full bg-slate-800 text-gray-100"
   ></textarea
   ><br />
 
@@ -97,7 +97,7 @@ content %}
         locationStatus.textContent = `Location captured successfully! (Accuracy: ${Math.round(
           accuracy
         )} meters)`;
-        locationStatus.className = "mt-2 font-semibold text-green-600";
+        locationStatus.className = "mt-2 font-semibold text-green-300";
 
         // Enable submit button
         submitBtn.disabled = false;
@@ -119,7 +119,7 @@ content %}
             locationStatus.textContent = "An unknown error occurred.";
             break;
         }
-        locationStatus.className = "mt-2 font-semibold text-red-600";
+        locationStatus.className = "mt-2 font-semibold text-red-300";
       },
       // Options
       {

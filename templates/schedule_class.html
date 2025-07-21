@@ -6,11 +6,11 @@ content %}
 
 <form method="POST" action="{{ url_for('schedule_class') }}" class="mt-4">
   <div class="mb-4">
-    <label for="class_select" class="block text-gray-700">Select Class:</label>
+    <label for="class_select" class="block text-gray-100">Select Class:</label>
     <select
       id="class_select"
       name="class_select"
-      class="border rounded-lg p-2 w-full"
+      class="border rounded-lg p-2 w-full bg-slate-800 text-gray-100"
       onchange="updateClassCode()"
     >
       <option value="" selected>-- Select a Class --</option>
@@ -23,7 +23,7 @@ content %}
   </div>
 
   <div class="mb-4">
-    <label for="sched_class_code" class="block text-gray-700"
+    <label for="sched_class_code" class="block text-gray-100"
       >Class Code:</label
     >
     <input
@@ -32,12 +32,12 @@ content %}
       name="sched_class_code"
       readonly
       required
-      class="border rounded-lg p-2 w-full bg-gray-100"
+      class="border rounded-lg p-2 w-full bg-slate-800 text-gray-100"
     />
   </div>
 
   <div class="mb-4">
-    <label for="sched_start_time" class="block text-gray-700"
+    <label for="sched_start_time" class="block text-gray-100"
       >Start Time:</label
     >
     <input
@@ -45,29 +45,29 @@ content %}
       id="sched_start_time"
       name="sched_start_time"
       required
-      class="border rounded-lg p-2 w-full"
+      class="border rounded-lg p-2 w-full bg-slate-800 text-gray-100"
     />
   </div>
 
   <div class="mb-4">
-    <label for="sched_end_time" class="block text-gray-700">End Time:</label>
+    <label for="sched_end_time" class="block text-gray-100">End Time:</label>
     <input
       type="datetime-local"
       id="sched_end_time"
       name="sched_end_time"
       required
-      class="border rounded-lg p-2 w-full"
+      class="border rounded-lg p-2 w-full bg-slate-800 text-gray-100"
     />
   </div>
 
   <div class="mb-4">
-    <label for="assigned_teacher_id" class="block text-gray-700"
+    <label for="assigned_teacher_id" class="block text-gray-100"
       >Assign Teacher:</label
     >
     <select
       id="assigned_teacher_id"
       name="assigned_teacher_id"
-      class="border rounded-lg p-2 w-full"
+      class="border rounded-lg p-2 w-full bg-slate-800 text-gray-100"
     >
       <option value="{{ session.user_id }}" selected>
         Myself ({{ session.name }})
@@ -76,7 +76,7 @@ content %}
       <option value="{{ teacher._id }}">{{ teacher.name }}</option>
       {% endif %} {% endfor %}
     </select>
-    <p class="text-sm text-gray-500 mt-1">
+    <p class="text-sm text-gray-400 mt-1">
       The assigned teacher will be able to generate QR codes for this class
       schedule.
     </p>

@@ -1,28 +1,30 @@
 {% extends "base.html" %}
 {% block title %}My Attendance{% endblock %}
+{% block page_title %}My Attendance{% endblock %}
 {% block content %}
-    <h2 class="text-xl font-semibold text-gray-700 text-center mb-6">My Attendance</h2>
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-blue-600 text-white">
-                    <th class="p-3">Class</th>
-                    <th class="p-3">Date</th>
-                    <th class="p-3">Status</th>
-                    <th class="p-3">GPS Verified</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for record in attendance %}
-                    <tr class="border-b hover:bg-gray-100">
-                        <td class="p-3">{{ record.class_name }} ({{ record.class_code }})</td>
-                        <td class="p-3">{{ record.date }}</td>
-                        <td class="p-3">{{ record.status }}</td>
-                        <td class="p-3">{{ record.gps_verified }}</td>
+    <div class="p-6">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-indigo-800 text-slate-200">
+                        <th class="p-3">Class</th>
+                        <th class="p-3">Date</th>
+                        <th class="p-3">Status</th>
+                        <th class="p-3">GPS Verified</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for record in attendance %}
+                        <tr class="border-b border-slate-700 hover:bg-slate-700">
+                            <td class="p-3 text-slate-300">{{ record.class_name }} ({{ record.class_code }})</td>
+                            <td class="p-3 text-slate-300">{{ record.date }}</td>
+                            <td class="p-3 text-slate-300">{{ record.status }}</td>
+                            <td class="p-3 text-slate-300">{{ record.gps_verified }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{{ url_for('student_dashboard') }}" class="block text-center mt-4 text-indigo-400 hover:text-indigo-300">Back to Dashboard</a>
     </div>
-    <a href="{{ url_for('student_dashboard') }}" class="block text-center mt-4 text-blue-600 hover:underline">Back</a>
 {% endblock %}

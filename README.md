@@ -1,4 +1,6 @@
-# Smart Attendance System
+# Syntra
+
+Where Every Presence Counts
 
 A facial recognition and QR code-based attendance system built with Flask, OpenCV, and MongoDB.
 

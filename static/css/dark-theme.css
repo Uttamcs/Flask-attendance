@@ -1,0 +1,74 @@
+/* Dark theme overrides for better visibility */
+.text-gray-700, .text-gray-800, .text-gray-900 {
+  color: #e2e8f0 !important; /* Light color for better visibility on dark background */
+}
+
+/* Make form inputs more visible on dark background */
+input, select, textarea {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
+}
+
+/* Make readonly inputs slightly different */
+input[readonly], select[readonly], textarea[readonly] {
+  background-color: #0f172a !important;
+}
+
+/* Improve placeholder visibility */
+::placeholder {
+  color: #94a3b8 !important;
+  opacity: 0.7;
+}
+
+/* Ensure all text is visible */
+body, p, span, label, a, button {
+  color: #f1f5f9;
+}
+
+/* Make background darker for all pages */
+.bg-gray-100, .bg-white, .bg-blue-50 {
+  background-color: #1e293b !important;
+}
+
+/* Ensure form elements have proper contrast */
+.border {
+  border-color: #475569 !important;
+}
+
+/* Fix text colors in info boxes */
+.text-blue-700, .text-blue-800, .text-blue-900 {
+  color: #93c5fd !important; /* Light blue for better visibility */
+}
+
+.text-yellow-600 {
+  color: #fcd34d !important; /* Brighter yellow */
+}
+
+.text-green-600 {
+  color: #6ee7b7 !important; /* Brighter green */
+}
+
+.text-red-600 {
+  color: #fca5a5 !important; /* Lighter red */
+}
+
+/* Fix table styles for dark mode */
+table {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+th, td {
+  border-color: #475569 !important;
+}
+
+/* Fix any light backgrounds */
+.bg-slate-100, .bg-slate-200, .bg-slate-300 {
+  background-color: #1e293b !important;
+}
+
+/* Ensure all labels are visible */
+label {
+  color: #e2e8f0 !important;
+}
