@@ -1,3 +1,4 @@
+.env
 static/uploads
 myenv
 node_modules

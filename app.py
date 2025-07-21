@@ -95,7 +95,7 @@ try:
     classes_collection = db["classes"]
     schedules_collection = db["schedules"]
     enrollments_collection = db["enrollments"]
-except pymongo.errors.ConnectionError as e:
+except pymongo.errors.PyMongoError as e:
     logger.error(f"MongoDB connection failed: {e}")
     exit(1)
 
