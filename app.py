@@ -62,7 +62,7 @@ socketio_logger.disabled = True
 # MongoDB setup
 try:
     # Get MongoDB URI from environment variable or use default
-    mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/')
+    mongo_uri = os.environ.get('MONGO_URI')
 
     # Extract database name from URI if present
     db_name = os.environ.get('MONGO_DB_NAME', 'syntra_attendance')
